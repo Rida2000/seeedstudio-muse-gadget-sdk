@@ -86,18 +86,24 @@ static esp_err_t init(void)
     s_talk.pressed = gpio_get_level(TALK_GPIO) == 0;
     s_aux.pressed = gpio_get_level(AUX_GPIO) == 0;
     const gpio_config_t irq = {
-        .pin_bit_mask = BIT64(TOUCH_IRQ), .mode = GPIO_MODE_INPUT, .pull_up_en = true,
+        .pin_bit_mask = BIT64(TOUCH_IRQ),
+        .mode = GPIO_MODE_INPUT,
+        .pull_up_en = true,
     };
     ESP_RETURN_ON_ERROR(gpio_config(&irq), TAG, "touch interrupt");
     i2c_master_bus_handle_t bus;
     const i2c_master_bus_config_t bus_cfg = {
-        .i2c_port = I2C_NUM_0, .sda_io_num = I2C_SDA, .scl_io_num = I2C_SCL,
-        .clk_source = I2C_CLK_SRC_DEFAULT, .glitch_ignore_cnt = 7,
+        .i2c_port = I2C_NUM_0,
+        .sda_io_num = I2C_SDA,
+        .scl_io_num = I2C_SCL,
+        .clk_source = I2C_CLK_SRC_DEFAULT,
+        .glitch_ignore_cnt = 7,
         .flags.enable_internal_pullup = true,
     };
     ESP_RETURN_ON_ERROR(i2c_new_master_bus(&bus_cfg, &bus), TAG, "touch bus");
     const i2c_device_config_t touch_cfg = {
-        .dev_addr_length = I2C_ADDR_BIT_LEN_7, .device_address = 0x63,
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+        .device_address = 0x63,   /* AXS5106L */
         .scl_speed_hz = 100000,
     };
     return i2c_master_bus_add_device(bus, &touch_cfg, &s_touch);
@@ -128,13 +134,20 @@ static esp_err_t panel_configure(void)
         uint8_t cmd, length, data[14];
     } commands[] = {
         {0x13, 0, {0}},
-        {0xb6, 2, {0x0a, 0x82}}, {0xb0, 2, {0x00, 0xe0}},
-        {0x3a, 1, {0x55}}, {0xb2, 5, {0x0c, 0x0c, 0x00, 0x33, 0x33}},
-        {0xb7, 1, {0x35}}, {0xbb, 1, {0x28}}, {0xc0, 1, {0x0c}},
-        {0xc2, 2, {0x01, 0xff}}, {0xc3, 1, {0x10}}, {0xc4, 1, {0x20}},
-        {0xc6, 1, {0x0f}}, {0xd0, 2, {0xa4, 0xa1}},
-        {0xe0, 14, {0xd0,0x00,0x02,0x07,0x0a,0x28,0x32,0x44,0x42,0x06,0x0e,0x12,0x14,0x17}},
-        {0xe1, 14, {0xd0,0x00,0x02,0x07,0x0a,0x28,0x31,0x54,0x47,0x0e,0x1c,0x17,0x1b,0x1e}},
+        {0xb6, 2, {0x0a, 0x82}},
+        {0xb0, 2, {0x00, 0xe0}},
+        {0x3a, 1, {0x55}},
+        {0xb2, 5, {0x0c, 0x0c, 0x00, 0x33, 0x33}},
+        {0xb7, 1, {0x35}},
+        {0xbb, 1, {0x28}},
+        {0xc0, 1, {0x0c}},
+        {0xc2, 2, {0x01, 0xff}},
+        {0xc3, 1, {0x10}},
+        {0xc4, 1, {0x20}},
+        {0xc6, 1, {0x0f}},
+        {0xd0, 2, {0xa4, 0xa1}},
+        {0xe0, 14, {0xd0, 0x00, 0x02, 0x07, 0x0a, 0x28, 0x32, 0x44, 0x42, 0x06, 0x0e, 0x12, 0x14, 0x17}},
+        {0xe1, 14, {0xd0, 0x00, 0x02, 0x07, 0x0a, 0x28, 0x31, 0x54, 0x47, 0x0e, 0x1c, 0x17, 0x1b, 0x1e}},
     };
     ESP_RETURN_ON_ERROR(esp_lcd_panel_init(s_panel), TAG, "LCD init");
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(s_panel_io, 0x11, NULL, 0), TAG, "sleep out");
@@ -155,31 +168,45 @@ static lv_display_t *display_start(lv_indev_t **touch)
 {
     *touch = NULL;
     const ledc_timer_config_t timer = {
-        .speed_mode = LEDC_LOW_SPEED_MODE, .duty_resolution = LEDC_TIMER_10_BIT,
-        .timer_num = LEDC_TIMER_0, .freq_hz = 20000, .clk_cfg = LEDC_AUTO_CLK,
+        .speed_mode = LEDC_LOW_SPEED_MODE,
+        .duty_resolution = LEDC_TIMER_10_BIT,
+        .timer_num = LEDC_TIMER_0,
+        .freq_hz = 20000,
+        .clk_cfg = LEDC_AUTO_CLK,
     };
     const ledc_channel_config_t backlight = {
-        .gpio_num = LCD_BL, .speed_mode = LEDC_LOW_SPEED_MODE,
-        .channel = LEDC_CHANNEL_0, .timer_sel = LEDC_TIMER_0, .duty = 0,
+        .gpio_num = LCD_BL,
+        .speed_mode = LEDC_LOW_SPEED_MODE,
+        .channel = LEDC_CHANNEL_0,
+        .timer_sel = LEDC_TIMER_0,
+        .duty = 0,
     };
     if (ledc_timer_config(&timer) != ESP_OK || ledc_channel_config(&backlight) != ESP_OK) {
         return NULL;
     }
     const spi_bus_config_t bus = {
-        .sclk_io_num = LCD_SCLK, .mosi_io_num = LCD_MOSI, .miso_io_num = GPIO_NUM_NC,
-        .quadwp_io_num = GPIO_NUM_NC, .quadhd_io_num = GPIO_NUM_NC,
+        .sclk_io_num = LCD_SCLK,
+        .mosi_io_num = LCD_MOSI,
+        .miso_io_num = GPIO_NUM_NC,
+        .quadwp_io_num = GPIO_NUM_NC,
+        .quadhd_io_num = GPIO_NUM_NC,
         .max_transfer_sz = LCD_W * DRAW_LINES * 2,
     };
     if (spi_bus_initialize(LCD_HOST, &bus, SPI_DMA_CH_AUTO) != ESP_OK) {
         return NULL;
     }
     const esp_lcd_panel_io_spi_config_t io = {
-        .cs_gpio_num = LCD_CS, .dc_gpio_num = LCD_DC, .spi_mode = 0,
-        .pclk_hz = 40 * 1000 * 1000, .trans_queue_depth = 10,
-        .lcd_cmd_bits = 8, .lcd_param_bits = 8,
+        .cs_gpio_num = LCD_CS,
+        .dc_gpio_num = LCD_DC,
+        .spi_mode = 0,
+        .pclk_hz = 40 * 1000 * 1000,
+        .trans_queue_depth = 10,
+        .lcd_cmd_bits = 8,
+        .lcd_param_bits = 8,
     };
     const esp_lcd_panel_dev_config_t panel = {
-        .reset_gpio_num = -1, .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_BGR,
+        .reset_gpio_num = GPIO_NUM_NC,   /* LCD_RST, pulsed once in init() */
+        .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_BGR,
         .bits_per_pixel = 16,
     };
     if (esp_lcd_new_panel_io_spi(LCD_HOST, &io, &s_panel_io) != ESP_OK ||
@@ -194,11 +221,16 @@ static lv_display_t *display_start(lv_indev_t **touch)
         return NULL;
     }
     const esp_lv_adapter_display_config_t display = {
-        .panel = s_panel, .panel_io = s_panel_io,
+        .panel = s_panel,
+        .panel_io = s_panel_io,
         .profile = {
             .interface = ESP_LV_ADAPTER_PANEL_IF_OTHER,
-            .rotation = ESP_LV_ADAPTER_ROTATE_0, .hor_res = LCD_W, .ver_res = LCD_H,
-            .buffer_height = DRAW_LINES, .use_psram = false, .require_double_buffer = true,
+            .rotation = ESP_LV_ADAPTER_ROTATE_0,
+            .hor_res = LCD_W,
+            .ver_res = LCD_H,
+            .buffer_height = DRAW_LINES,
+            .use_psram = false,
+            .require_double_buffer = true,
         },
         .tear_avoid_mode = ESP_LV_ADAPTER_TEAR_AVOID_MODE_NONE,
     };
@@ -216,14 +248,22 @@ static lv_display_t *display_start(lv_indev_t **touch)
     return *touch ? disp : NULL;
 }
 
-static bool display_lock(int timeout_ms) { return esp_lv_adapter_lock(timeout_ms) == ESP_OK; }
+static bool display_lock(int timeout_ms)
+{
+    return esp_lv_adapter_lock(timeout_ms) == ESP_OK;
+}
+
 static void set_brightness(int pct)
 {
     pct = pct < 0 ? 0 : (pct > 100 ? 100 : pct);
     ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, pct * 1023 / 100);
     ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
 }
-static void panel_sleep(bool sleep) { esp_lcd_panel_disp_sleep(s_panel, sleep); }
+
+static void panel_sleep(bool sleep)
+{
+    esp_lcd_panel_disp_sleep(s_panel, sleep);
+}
 
 static esp_err_t mic_init(void)
 {
@@ -234,7 +274,10 @@ static esp_err_t mic_init(void)
     const i2s_pdm_rx_config_t pdm = {
         .clk_cfg = I2S_PDM_RX_CLK_DEFAULT_CONFIG(MUSE_AUDIO_RATE),
         .slot_cfg = I2S_PDM_RX_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO),
-        .gpio_cfg = { .clk = MIC_CLK, .din = MIC_DATA },
+        .gpio_cfg = {
+            .clk = MIC_CLK,
+            .din = MIC_DATA,
+        },
     };
     ESP_RETURN_ON_ERROR(i2s_channel_init_pdm_rx_mode(s_mic, &pdm), TAG, "PDM mode");
     gpio_set_drive_capability(MIC_CLK, GPIO_DRIVE_CAP_0);
@@ -264,7 +307,9 @@ static esp_err_t mic_read(int16_t *mono, size_t frames)
     }
     if (!s_mic_settled) {
         int32_t sum = 0;
-        for (size_t i = 0; i < frames; i++) { sum += mono[i]; }
+        for (size_t i = 0; i < frames; i++) {
+            sum += mono[i];
+        }
         s_mic_dc = sum / (int32_t)frames * 256;
         s_mic_settled = true;
     }
@@ -275,17 +320,25 @@ static esp_err_t mic_read(int16_t *mono, size_t frames)
     }
     return ESP_OK;
 }
+
+/* USR1 talks; USR2 is the aux button, which sleeps and wakes the screen. */
 static unsigned poll_buttons(void)
 {
     return muse_gpio_button_poll(&s_talk) | (muse_gpio_button_poll(&s_aux) << 2);
 }
+
+/* No charger status reaches the chip, so the battery reads as absent; USB is
+ * known when a host enumerates the chip's own USB. */
 static esp_err_t read_power(muse_power_t *out)
 {
-    /* No charger-status GPIO. Do not infer battery presence from a voltage that
-     * can also appear on USB power. Voltage/IMU support is left for a later port. */
-    *out = (muse_power_t){ .usb = usb_serial_jtag_is_connected(), .battery_pct = -1 };
+    *out = (muse_power_t){
+        .usb = usb_serial_jtag_is_connected(),
+        .battery_pct = -1,
+    };
     return ESP_OK;
 }
+
+/* Panel off, then deep sleep until USR1 is pressed. */
 static esp_err_t power_off(void)
 {
     set_brightness(0);
@@ -297,20 +350,39 @@ static esp_err_t power_off(void)
     rtc_gpio_set_direction(TALK_GPIO, RTC_GPIO_MODE_INPUT_ONLY);
     rtc_gpio_pullup_en(TALK_GPIO);
     rtc_gpio_pulldown_dis(TALK_GPIO);
-    ESP_RETURN_ON_ERROR(esp_sleep_enable_ext1_wakeup_io(BIT64(TALK_GPIO), ESP_EXT1_WAKEUP_ANY_LOW), TAG, "USR1 wake");
+    ESP_RETURN_ON_ERROR(esp_sleep_enable_ext1_wakeup_io(BIT64(TALK_GPIO), ESP_EXT1_WAKEUP_ANY_LOW), TAG,
+                        "USR1 wake");
     esp_deep_sleep_start();
-    return ESP_FAIL;
+    return ESP_FAIL;   /* still running: deep sleep didn't start */
 }
+
 static const muse_board_t s_board = {
     .name = "Seeed XIAO ESP32-S3 1.47 Touch Display",
-    .width = LCD_W, .height = LCD_H, .touch = true, .diagonal_in = 1.47f,
-    .talk_button = "USR1", .aux_button = "USR2",
+    .width = LCD_W,
+    .height = LCD_H,
+    .touch = true,
+    .diagonal_in = 1.47f,
+    .talk_button = "USR1",
+    .aux_button = "USR2",
     .talk_hint = { LV_ALIGN_BOTTOM_LEFT, 4, -4 },
     .aux_hint = { LV_ALIGN_BOTTOM_RIGHT, -4, -4 },
-    .frame_ms = 40, .init = init, .display_start = display_start,
-    .display_lock = display_lock, .display_unlock = esp_lv_adapter_unlock,
-    .set_brightness = set_brightness, .panel_sleep = panel_sleep,
-    .mic_init = mic_init, .mic_power = mic_power, .mic_read = mic_read,
-    .poll_buttons = poll_buttons, .read_power = read_power, .power_off = power_off,
+    .frame_ms = 40,
+    .init = init,
+    .display_start = display_start,
+    .display_lock = display_lock,
+    .display_unlock = esp_lv_adapter_unlock,
+    .set_brightness = set_brightness,
+    .panel_sleep = panel_sleep,
+    .mic_init = mic_init,
+    .mic_power = mic_power,
+    .mic_read = mic_read,
+    .poll_buttons = poll_buttons,
+    .read_power = read_power,
+    .power_off = power_off,
 };
-const muse_board_t *muse_board_get(void) { return &s_board; }
+
+/* Home Link's app_main starts Muse with this board (main/main.c). */
+const muse_board_t *muse_board_get(void)
+{
+    return &s_board;
+}
