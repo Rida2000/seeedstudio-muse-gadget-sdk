@@ -96,6 +96,8 @@ if(CONFIG_MUSE_ENABLED)
         list(APPEND srcs "boards/board_m5stack_stickc_plus2.c")
     elseif(CONFIG_MUSE_BOARD_M5STACK_STOPWATCH)
         list(APPEND srcs "boards/board_m5stack_stopwatch.c" "boards/muse_lcd_bands.c")
+    elseif(CONFIG_MUSE_BOARD_SEEED_XIAO_S3_147)
+        list(APPEND srcs "boards/board_seeed_xiao_s3_147.c")
     elseif(CONFIG_MUSE_BOARD_SEEED_XIAO_AMOLED_205 OR CONFIG_MUSE_BOARD_SEEED_XIAO_AMOLED_175 OR
            CONFIG_MUSE_BOARD_SEEED_XIAO_AMOLED_216)
         # One driver: the modules differ in their panel (the file's LCD_* block).

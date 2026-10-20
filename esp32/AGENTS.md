@@ -71,6 +71,7 @@ before adding a feature to one.
 | M5Stack Cardputer ADV (experimental) | `esp32s3` | `devices/sdkconfig.muse;devices/sdkconfig.muse-m5stack-cardputer-adv` | `tools/muse/board.sh build cardputer-adv` |
 | M5Stack StickS3 | `esp32s3` | `devices/sdkconfig.muse;devices/sdkconfig.muse-m5stack-sticks3` | manual |
 | M5Stack StopWatch | `esp32s3` | `devices/sdkconfig.muse;devices/sdkconfig.muse-m5stack-stopwatch` | manual |
+| Seeed XIAO ESP32-S3 1.47 Touch Display | `esp32s3` | `devices/sdkconfig.muse;devices/sdkconfig.muse-seeed-xiao-s3-147` | `tools/muse/board.sh build xiao147` |
 | Seeed XIAO AMOLED Display, 2.05" module (experimental) | `esp32s3` | `devices/sdkconfig.muse;devices/sdkconfig.muse-seeed-xiao-amoled-205` | `tools/muse/board.sh build xiao-amoled-205` |
 | Seeed XIAO AMOLED Display, 1.75" round module (experimental) | `esp32s3` | `devices/sdkconfig.muse;devices/sdkconfig.muse-seeed-xiao-amoled-175` | `tools/muse/board.sh build xiao-amoled-175` |
 | Seeed XIAO AMOLED Display, 2.16" square module (experimental) | `esp32s3` | `devices/sdkconfig.muse;devices/sdkconfig.muse-seeed-xiao-amoled-216` | `tools/muse/board.sh build xiao-amoled-216` |
@@ -154,7 +155,7 @@ voice note that Muse answers in the app, and the dial sets the speaker volume
 
 ### Boards with the full UI, by hand
 
-`tools/muse/board.sh build|flash <s3|s3n|s3-216|aipi|box3|c6|c6-206|watcher|sticks3|plus2|cardputer-adv|stopwatch|xiao-amoled-205|xiao-amoled-175|xiao-amoled-216|cores3|core2|jc3248w535|lcd7|lcd128|vn183|ai-passport|echoear> [SERIAL|PORT]`
+`tools/muse/board.sh build|flash <s3|s3n|s3-216|aipi|box3|c6|c6-206|watcher|sticks3|plus2|cardputer-adv|stopwatch|xiao147|xiao-amoled-205|xiao-amoled-175|xiao-amoled-216|cores3|core2|jc3248w535|lcd7|lcd128|vn183|ai-passport|echoear> [SERIAL|PORT]`
 builds one board in `build-muse-<profile>/`, logs to
 `/tmp/muse_build_<board>.log`, and clears `managed_components/` before and
 after so it doesn't clash with other boards. When flashing, it finds the
@@ -272,6 +273,7 @@ flash size and status backend.
    | Hint | Board |
    |---|---|
    | `top-right` (`yellow` on older firmware) | M5Stack StopWatch |
+   | `USR1` | Seeed XIAO ESP32-S3 1.47 Touch Display |
    | `enter` | Seeed XIAO AMOLED 2.05, 1.75 or 2.16: the `muse: board:` line a reset logs tells them apart |
    | `power` | M5Stack CoreS3 |
    | `front` | M5Stack StickS3, or StickC Plus2 — tell them apart by the port: the StickS3 is native USB, the Plus2 is a CH9102 `usbserial` |

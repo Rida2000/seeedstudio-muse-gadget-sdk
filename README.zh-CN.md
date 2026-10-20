@@ -53,6 +53,7 @@ limitations under the License.
 | [reTerminal E1002](https://www.seeedstudio.com/reTerminal-E1002-p-6533.html) | 同上，换成 7.3 英寸六色电子墨水屏，能显示彩色图片。 | [网页烧录器](#方法-a网页烧录器最简单) |
 | [reTerminal Sticky](https://www.seeedstudio.com/reTerminal-Sticky-p-6861.html) *（实验性）* | 3.97 英寸电子墨水触摸屏上运行 Muse。按住 AI 键发语音，在屏幕上看回复（支持中文和日文）。灰度图片、温湿度、电池。没有喇叭。 | [自己编译](#方法-c自己编译) |
 | [reSpeaker Lite（搭配 XIAO ESP32-S3）](https://wiki.seeedstudio.com/xiao_respeaker/) *（实验性）* | 按住 XIAO 上的 BOOT 键说话，回复显示在 Muse app 里。 | [自己编译](#方法-c自己编译) |
+| [XIAO 1.47 英寸 IPS 触摸屏（ESP32-S3）](https://www.seeedstudio.com/1-47-Inch-Touch-Display-Powered-by-XIAO-ESP32-S3-Plus-p-6996.html) *（实验性）* | 1.47 英寸触摸屏上有一张会动的脸。按住 USR1 说话，在屏幕上看回复。能显示 Muse 发来的图片。外接 MAX98357A 功放就能出声。 | [自己编译](#方法-c自己编译) |
 | XIAO AMOLED Display，1.75 英寸圆屏、2.05 英寸屏或 2.16 英寸方屏 *（实验性）* | AMOLED 触摸屏上有一张会动的脸。按住 ENTER 说话，在屏幕上看回复。能显示 Muse 发来的图片，带电池。 | [自己编译](#方法-c自己编译) |
 
 这些设备都只用 2.4 GHz Wi-Fi。包括其他品牌在内的完整板卡列表在 [`esp32/devices/`](esp32/devices/README.md)。
@@ -173,6 +174,7 @@ cd seeedstudio-muse-gadget-sdk/esp32
 | reTerminal E1002 | `tools/board.sh reterminal-e1002 build` | `tools/board.sh reterminal-e1002 flash` |
 | reTerminal Sticky | `tools/board.sh reterminal-sticky build` | `tools/board.sh reterminal-sticky flash` |
 | reSpeaker Lite（XIAO） | `tools/board.sh seeed-respeaker-lite build` | `tools/board.sh seeed-respeaker-lite flash` |
+| XIAO 1.47 英寸触摸屏 | `tools/muse/board.sh build xiao147` | `tools/muse/board.sh flash xiao147` |
 | XIAO AMOLED，1.75 英寸圆屏 | `tools/muse/board.sh build xiao-amoled-175` | `tools/muse/board.sh flash xiao-amoled-175` |
 | XIAO AMOLED，2.05 英寸屏 | `tools/muse/board.sh build xiao-amoled-205` | `tools/muse/board.sh flash xiao-amoled-205` |
 | XIAO AMOLED，2.16 英寸方屏 | `tools/muse/board.sh build xiao-amoled-216` | `tools/muse/board.sh flash xiao-amoled-216` |
@@ -189,6 +191,7 @@ cd seeedstudio-muse-gadget-sdk/esp32
 | reTerminal E1002 | `build-reterminal-e1002` |
 | reTerminal Sticky | `build-reterminal-sticky` |
 | reSpeaker Lite（XIAO） | `build-seeed-respeaker-lite` |
+| XIAO 1.47 英寸触摸屏 | `build-muse-seeed-xiao-s3-147` |
 | XIAO AMOLED，1.75 英寸圆屏 | `build-muse-seeed-xiao-amoled-175` |
 | XIAO AMOLED，2.05 英寸屏 | `build-muse-seeed-xiao-amoled-205` |
 | XIAO AMOLED，2.16 英寸方屏 | `build-muse-seeed-xiao-amoled-216` |
@@ -208,7 +211,7 @@ perl -pi -e 's/^CONFIG_GADGET_SDK_TOKEN=.*/CONFIG_GADGET_SDK_TOKEN="mgst_YOUR_TO
 插上设备，运行表格里它的**安装（烧录）**命令。它会自己找到设备的 USB 口。等它运行完：Watcher 大约要 3 分钟，而且完成前什么都不显示，千万别中断。
 
 - **reSpeaker Lite：** 线要插在**小的 XIAO 板**上，不是大板。它的 XMOS 音频芯片必须运行 Seeed 的 16 kHz I2S 固件 v1.0.9，见它的[设置说明](esp32/devices/seeed-respeaker-lite.md)。
-- **XIAO AMOLED：** 线插在 XIAO 板的 USB-C 口上。
+- **XIAO 1.47 英寸触摸屏和 XIAO AMOLED：** 线插在 XIAO 板的 USB-C 口上。
 - **找不到设备，或者找到不止一个：** 在命令最后加上串口，比如 `tools/board.sh reterminal-e1001 flash /dev/cu.usbserial-110`。macOS 上用 `ls /dev/cu.usb*`，Linux 上用 `ls /dev/ttyACM* /dev/ttyUSB*` 列出串口；拔掉设备再运行一次，消失的那个就是它。
 
 以后再安装，Wi-Fi 和配对都会保留。
@@ -243,6 +246,7 @@ tools/muse/paced_esptool.py --chip esp32s3 -p /dev/cu.usbmodem5A7A0185113 read-f
    | reTerminal E1001、E1002 | 绿色按键 |
    | reTerminal Sticky | AI 键 |
    | reSpeaker Lite | XIAO 上的 **BOOT** 键（标着 **B**，在 USB-C 口旁边） |
+   | XIAO 1.47 英寸触摸屏 | **USR1** |
    | XIAO AMOLED | **ENTER** |
 
 6. 选择你的 2.4 GHz Wi-Fi，输入密码。
@@ -254,13 +258,13 @@ tools/muse/paced_esptool.py --chip esp32s3 -p /dev/cu.usbmodem5A7A0185113 read-f
 
 ### 和 Muse 说话
 
-在 **SenseCAP Watcher、reTerminal Sticky、reSpeaker Lite 和 XIAO AMOLED** 上：
+在 **SenseCAP Watcher、reTerminal Sticky、reSpeaker Lite、XIAO 1.47 英寸触摸屏和 XIAO AMOLED** 上：
 
-1. **按住**说话键：Watcher 是滚轮，Sticky 是 AI 键，reSpeaker Lite 是 XIAO 的 BOOT 键，XIAO AMOLED 是 ENTER。
+1. **按住**说话键：Watcher 是滚轮，Sticky 是 AI 键，reSpeaker Lite 是 XIAO 的 BOOT 键，XIAO 1.47 英寸触摸屏是 USR1，XIAO AMOLED 是 ENTER。
 2. 按住的同时说话。
 3. **松开**就发送。
 
-Muse 用文字回答。Watcher、Sticky 和 XIAO AMOLED 会把回答显示在屏幕上；reSpeaker Lite 的回答显示在 Muse app 里。
+Muse 用文字回答。Watcher、Sticky 和两款 XIAO 屏会把回答显示在屏幕上；reSpeaker Lite 的回答显示在 Muse app 里。
 
 ### 让 Muse 使用你的设备
 
@@ -271,7 +275,7 @@ Muse 用文字回答。Watcher、Sticky 和 XIAO AMOLED 会把回答显示在屏
 
 ### 屏幕上的菜单
 
-在 **Watcher、Sticky 和 XIAO AMOLED** 上，在 Muse 的脸上向左滑就能打开 **Settings（设置）**。XIAO AMOLED 上按 **BACK** 也能打开菜单。在那里可以修改 Wi-Fi、音量、屏幕亮度和息屏时间，查看电池，重置配对，以及关机。
+在 **Watcher、Sticky 和两款 XIAO 屏** 上，在 Muse 的脸上向左滑就能打开 **Settings（设置）**。XIAO AMOLED 上按 **BACK** 也能打开菜单；XIAO 1.47 英寸触摸屏上按 **USR2** 可以息屏和唤醒。在那里可以修改 Wi-Fi、音量、屏幕亮度和息屏时间，查看电池，重置配对，以及关机。
 
 **Watcher** 的滚轮：按下是说话，转动是让屏幕休眠或唤醒。
 
@@ -303,7 +307,7 @@ Indicator 和 reTerminal E1001/E1002 会把状态直接写在屏幕上。reSpeak
 
 **从头开始（清除 Wi-Fi 和配对）。**
 
-- Watcher、Sticky 和 XIAO AMOLED：**Settings > Muse > Reset pairing**，再点一次确认。
+- Watcher、Sticky 和两款 XIAO 屏：**Settings > Muse > Reset pairing**，再点一次确认。
 - Indicator、reTerminal E1001/E1002 和 reSpeaker Lite：按住第 3 步里的确认键 **5 秒**。reSpeaker Lite 要先把 Mute 开关打开。
 
 然后在 Muse app 里重新添加。
@@ -340,6 +344,7 @@ Muse Gadgets 采用 Apache License 2.0 许可，见 [`LICENSE`](LICENSE)。以�
 
 | 路径 | 上游 | 许可证 |
 |---|---|---|
+| [`board_seeed_xiao_s3_147.c`](esp32/components/muse/boards/board_seeed_xiao_s3_147.c) 里的 JD9853A 初始化序列 | [Seeed-Studio/Seeed_GFX2](https://github.com/Seeed-Studio/Seeed_GFX2) | MIT，见 [`Seeed_GFX2.txt`](esp32/devices/licenses/Seeed_GFX2.txt) |
 | [`esp32/components/minimp3/include/minimp3.h`](esp32/components/minimp3) | [lieff/minimp3](https://github.com/lieff/minimp3) | CC0-1.0，见 [`LICENSE`](esp32/components/minimp3/LICENSE) |
 | [`esp32/components/muse/boards/ostb_echoear_display_init.h`](esp32/components/muse/boards/ostb_echoear_display_init.h) | [78/xiaozhi-esp32 ESP-VoCat 屏幕初始化序列](https://github.com/78/xiaozhi-esp32/blob/0d576d3d4c049c6f55eaf879725dc23e516511b4/main/boards/espressif/esp-vocat/esp_vocat.cc) | MIT，保留在文件头里 |
 | [`esp32/main/pixel_font.c`](esp32/main/pixel_font.c) | Adafruit GFX `glcdfont.c` | BSD-2-Clause，见文件头 |

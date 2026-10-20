@@ -91,6 +91,10 @@ menu "Muse"
             bool "M5Stack StopWatch (ESP32-S3, round touch AMOLED)"
             depends on IDF_TARGET_ESP32S3
 
+        config MUSE_BOARD_SEEED_XIAO_S3_147
+            bool "Seeed XIAO ESP32-S3 1.47 Touch Display (PDM mic, external MAX98357A)"
+            depends on IDF_TARGET_ESP32S3
+
         config MUSE_BOARD_SEEED_XIAO_AMOLED_205
             bool "Seeed XIAO AMOLED Display, 2.05\" 368x448 module (experimental)"
             depends on IDF_TARGET_ESP32S3
@@ -155,6 +159,7 @@ menu "Muse"
         default "m5stack_stickc_plus2" if MUSE_BOARD_M5STACK_STICKC_PLUS2
         default "m5stack_cardputer_adv" if MUSE_BOARD_M5STACK_CARDPUTER_ADV
         default "m5stack_stopwatch" if MUSE_BOARD_M5STACK_STOPWATCH
+        default "seeed_xiao_s3_147" if MUSE_BOARD_SEEED_XIAO_S3_147
         default "seeed_xiao_amoled_205" if MUSE_BOARD_SEEED_XIAO_AMOLED_205
         default "seeed_xiao_amoled_175" if MUSE_BOARD_SEEED_XIAO_AMOLED_175
         default "seeed_xiao_amoled_216" if MUSE_BOARD_SEEED_XIAO_AMOLED_216

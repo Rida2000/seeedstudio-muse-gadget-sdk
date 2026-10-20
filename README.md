@@ -63,6 +63,7 @@ beginning, with no programming experience needed.
 | [reTerminal E1002](https://www.seeedstudio.com/reTerminal-E1002-p-6533.html) | The same on a 7.3" six-colour e-paper, with colour pictures. | [Web flasher](#option-a-the-web-flasher-easiest) |
 | [reTerminal Sticky](https://www.seeedstudio.com/reTerminal-Sticky-p-6861.html) *(experimental)* | Muse on a 3.97" e-paper touch screen. Hold the AI button to send a voice note, read the reply on screen (Chinese and Japanese too). Grayscale pictures, temperature, humidity, battery. No speaker. | [Build it](#option-c-build-it-yourself) |
 | [reSpeaker Lite with XIAO ESP32-S3](https://wiki.seeedstudio.com/xiao_respeaker/) *(experimental)* | Hold the XIAO's BOOT button to talk. Replies appear in the Muse app. | [Build it](#option-c-build-it-yourself) |
+| [XIAO 1.47" IPS Touch Display (ESP32-S3)](https://www.seeedstudio.com/1-47-Inch-Touch-Display-Powered-by-XIAO-ESP32-S3-Plus-p-6996.html) *(experimental)* | Animated face on a 1.47" touch screen. Hold USR1 to talk, read the reply on screen. Pictures from Muse. Add a MAX98357A amplifier for sound. | [Build it](#option-c-build-it-yourself) |
 | XIAO AMOLED Display, 1.75" round, 2.05" or 2.16" square screen *(experimental)* | Animated face on an AMOLED touch screen. Hold ENTER to talk, read the reply on screen. Pictures from Muse, battery. | [Build it](#option-c-build-it-yourself) |
 
 All of them use 2.4 GHz Wi-Fi. The full list of boards, including other
@@ -218,6 +219,7 @@ several minutes.
 | reTerminal E1002 | `tools/board.sh reterminal-e1002 build` | `tools/board.sh reterminal-e1002 flash` |
 | reTerminal Sticky | `tools/board.sh reterminal-sticky build` | `tools/board.sh reterminal-sticky flash` |
 | reSpeaker Lite (XIAO) | `tools/board.sh seeed-respeaker-lite build` | `tools/board.sh seeed-respeaker-lite flash` |
+| XIAO 1.47" Touch Display | `tools/muse/board.sh build xiao147` | `tools/muse/board.sh flash xiao147` |
 | XIAO AMOLED, 1.75" round | `tools/muse/board.sh build xiao-amoled-175` | `tools/muse/board.sh flash xiao-amoled-175` |
 | XIAO AMOLED, 2.05" | `tools/muse/board.sh build xiao-amoled-205` | `tools/muse/board.sh flash xiao-amoled-205` |
 | XIAO AMOLED, 2.16" square | `tools/muse/board.sh build xiao-amoled-216` | `tools/muse/board.sh flash xiao-amoled-216` |
@@ -235,6 +237,7 @@ after your device:
 | reTerminal E1002 | `build-reterminal-e1002` |
 | reTerminal Sticky | `build-reterminal-sticky` |
 | reSpeaker Lite (XIAO) | `build-seeed-respeaker-lite` |
+| XIAO 1.47" Touch Display | `build-muse-seeed-xiao-s3-147` |
 | XIAO AMOLED, 1.75" round | `build-muse-seeed-xiao-amoled-175` |
 | XIAO AMOLED, 2.05" | `build-muse-seeed-xiao-amoled-205` |
 | XIAO AMOLED, 2.16" square | `build-muse-seeed-xiao-amoled-216` |
@@ -263,7 +266,8 @@ it.
 - **reSpeaker Lite:** plug the cable into the **small XIAO board**, not the
   larger board. Its XMOS audio chip must run Seeed's 16 kHz I2S firmware
   v1.0.9; see its [setup guide](esp32/devices/seeed-respeaker-lite.md).
-- **XIAO AMOLED:** plug the cable into the XIAO board's USB-C port.
+- **XIAO 1.47" Touch Display and XIAO AMOLED:** plug the cable into the XIAO
+  board's USB-C port.
 - **It can't find the device, or finds more than one:** add the port at the
   end, such as `tools/board.sh reterminal-e1001 flash /dev/cu.usbserial-110`.
   `ls /dev/cu.usb*` on macOS, or `ls /dev/ttyACM* /dev/ttyUSB*` on Linux,
@@ -307,6 +311,7 @@ light breathes orange.
    | reTerminal E1001, E1002 | The green button |
    | reTerminal Sticky | The AI button |
    | reSpeaker Lite | The XIAO's **BOOT** button (marked **B**, beside the USB-C port) |
+   | XIAO 1.47" Touch Display | **USR1** |
    | XIAO AMOLED | **ENTER** |
 
 6. Choose your 2.4 GHz Wi-Fi and type its password.
@@ -320,15 +325,17 @@ can add it without you. Do it on a network you trust.
 
 ### Talking to Muse
 
-On the **SenseCAP Watcher, reTerminal Sticky, reSpeaker Lite and XIAO
-AMOLED**:
+On the **SenseCAP Watcher, reTerminal Sticky, reSpeaker Lite, XIAO 1.47"
+Touch Display and XIAO AMOLED**:
 
 1. **Hold** the talk button: the Watcher's wheel, the Sticky's AI button, the
-   XIAO's BOOT button on the reSpeaker Lite, or ENTER on the XIAO AMOLED.
+   XIAO's BOOT button on the reSpeaker Lite, USR1 on the XIAO 1.47" Touch
+   Display, or ENTER on the XIAO AMOLED.
 2. Speak while you hold it.
 3. **Let go** to send.
 
-Muse answers in text. The Watcher, Sticky and XIAO AMOLED show it on screen;
+Muse answers in text. The Watcher, Sticky and both XIAO displays show it on
+screen;
 the reSpeaker Lite's answers appear in the Muse app.
 
 ### Asking Muse to use the device
@@ -345,8 +352,9 @@ for it in plain words. For example:
 
 ### The on-screen menu
 
-On the **Watcher, Sticky and XIAO AMOLED**, swipe left on Muse's face to open
-**Settings**. On the XIAO AMOLED, **BACK** opens the menu too. From there you
+On the **Watcher, Sticky and both XIAO displays**, swipe left on Muse's face to
+open **Settings**. On the XIAO AMOLED, **BACK** opens the menu too; on the
+XIAO 1.47" Touch Display, **USR2** turns the screen off and on. From there you
 can change Wi-Fi, the volume, the screen's brightness and sleep time, check
 the battery, reset the pairing, and power off.
 
@@ -393,7 +401,7 @@ device and add it in the Muse app again.
 
 **Start over (forget Wi-Fi and pairing).**
 
-- Watcher, Sticky and XIAO AMOLED: **Settings > Muse > Reset pairing**, and tap
+- Watcher, Sticky and both XIAO displays: **Settings > Muse > Reset pairing**, and tap
   it again to confirm.
 - Indicator, reTerminal E1001/E1002 and reSpeaker Lite: hold the confirm button
   from Step 3 for **5 seconds**. On the reSpeaker Lite, turn the Mute switch on
@@ -443,6 +451,7 @@ upstream licenses:
 
 | Path | Upstream | License |
 |---|---|---|
+| JD9853A initialization sequence in [`board_seeed_xiao_s3_147.c`](esp32/components/muse/boards/board_seeed_xiao_s3_147.c) | [Seeed-Studio/Seeed_GFX2](https://github.com/Seeed-Studio/Seeed_GFX2) | MIT, see [`Seeed_GFX2.txt`](esp32/devices/licenses/Seeed_GFX2.txt) |
 | [`esp32/components/minimp3/include/minimp3.h`](esp32/components/minimp3) | [lieff/minimp3](https://github.com/lieff/minimp3) | CC0-1.0, see [`LICENSE`](esp32/components/minimp3/LICENSE) |
 | [`esp32/components/muse/boards/ostb_echoear_display_init.h`](esp32/components/muse/boards/ostb_echoear_display_init.h) | [78/xiaozhi-esp32 ESP-VoCat panel sequence](https://github.com/78/xiaozhi-esp32/blob/0d576d3d4c049c6f55eaf879725dc23e516511b4/main/boards/espressif/esp-vocat/esp_vocat.cc) | MIT, retained in the file header |
 | [`esp32/main/pixel_font.c`](esp32/main/pixel_font.c) | Adafruit GFX `glcdfont.c` | BSD-2-Clause, in the file header |
