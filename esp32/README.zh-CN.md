@@ -165,7 +165,7 @@ idf.py -p /dev/cu.usbmodem1101 flash monitor
 | M5Stack Cardputer ADV (experimental) | 界面、GO/Space 按住说话并显示文字回复，Esc/Enter/方向键控制菜单 | `tools/muse/board.sh build cardputer-adv` |
 | M5Stack StickS3 | 界面、按住说话、双键菜单、图片 | 见 [`AGENTS.md`](AGENTS.md#boards-with-the-full-ui-by-hand) |
 | M5Stack StopWatch | 界面、按住说话、设置、图片 | 见 [`AGENTS.md`](AGENTS.md#boards-with-the-full-ui-by-hand) |
-| Seeed XIAO ESP32-S3 1.47 英寸触摸屏 | 界面、USR1 按住说话、触摸、设置、图片；外接 MAX98357A 出声 | `tools/muse/board.sh build xiao147` |
+| Seeed XIAO ESP32-S3 1.47 英寸触摸屏 | 界面、USR1 按住说话、触摸、设置、图片；PDM 麦克风，无喇叭 | `tools/muse/board.sh build xiao147` |
 | Seeed XIAO AMOLED Display，2.05" 屏（实验性） | 界面、ENTER 按住说话、触摸、设置、图片 | `tools/muse/board.sh build xiao-amoled-205` |
 | Seeed XIAO AMOLED Display，1.75" 圆屏（实验性） | 界面、ENTER 按住说话、触摸、设置、图片 | `tools/muse/board.sh build xiao-amoled-175` |
 | Seeed XIAO AMOLED Display，2.16" 方屏（实验性） | 界面、ENTER 按住说话、触摸、设置、图片 | `tools/muse/board.sh build xiao-amoled-216` |

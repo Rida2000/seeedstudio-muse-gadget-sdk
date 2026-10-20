@@ -23,9 +23,14 @@ The Muse avatar, touch settings, BLE pairing, Wi-Fi, USR1 push-to-talk,
 Chinese and Japanese captions, and USR2 screen sleep and wake. Replies from
 Muse are text on the screen.
 
-The board has no speaker. A MAX98357A amplifier on D11/D12/D13 plays the
-device's sounds. The board's LSM6DS3 IMU, MicroSD slot and battery input
+The board has a microphone and no speaker, so it runs as a microphone-only
+gadget: Settings > Sound shows the microphone gain and level, and replies are
+always read on screen. The board's LSM6DS3 IMU, MicroSD slot and battery input
 aren't used yet, and OTA is off for this profile: update it over USB.
+
+Checked on one unit: boot, BLE pairing with USR1, Wi-Fi, push-to-talk with
+replies on screen, touch settings and USR2 sleep and wake. Recognition is
+best within about 20 cm in a quiet room.
 
 ## Pins
 
@@ -39,7 +44,6 @@ PDM example). The adapted panel sequence keeps Seeed's
 | Function | XIAO pin | GPIO |
 |---|---|---|
 | PDM clock / data | D0 / D1 | 1 / 2 |
-| MAX98357A DIN / BCLK / LRC | D11 / D12 / D13 | 38 / 39 / 40 |
 | LCD CS / DC | D2 / D3 | 3 / 4 |
 | LCD SCK / MOSI | D8 / D10 | 7 / 9 |
 | LCD and touch reset / backlight | D17 / D18 | 13 / 12 |
@@ -52,24 +56,11 @@ sequence: MADCTL `0x48` (MX+BGR), X offset 34, Y offset 0, inversion off.
 Touch X is mirrored to match. The LCD and touch share one reset line, pulsed
 once at boot before either starts.
 
-The PDM microphone is on I2S0, which is the S3's only PDM receiver; the
-amplifier is on I2S1 at 16 kHz, 16-bit stereo Philips I2S, with the mono
-signal on both channels. The microphone's DC offset is removed before gain.
+The PDM microphone is on I2S0, which is the S3's only PDM receiver, at 16 kHz.
+The board removes the PDM filter's DC offset; Muse applies the gain set in
+Settings > Sound (30 dB by default).
 The console is the chip's own USB, since UART0's GPIO43/44 carry SD CS and the
 touch interrupt.
-
-### MAX98357A wiring
-
-| XIAO | MAX98357A |
-|---|---|
-| D11 / GPIO38 | DIN |
-| D12 / GPIO39 | BCLK |
-| D13 / GPIO40 | LRC |
-| GND | GND |
-| 3V3 | VIN |
-
-Connect the speaker across SPK+ and SPK−. The amplifier needs no MCLK or I2C.
-The profile starts at 40% volume; Settings > Sound changes it.
 
 ## Build and flash
 

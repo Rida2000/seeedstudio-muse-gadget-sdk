@@ -10,16 +10,13 @@
  * The panel register sequence is adapted from Seeed_GFX2; its MIT notice is
  * retained in devices/licenses/Seeed_GFX2.txt.
  *
- * External MAX98357A: DIN=D11/GPIO38, BCLK=D12/GPIO39, LRCLK=D13/GPIO40.
- * The PDM microphone uses I2S0; standard I2S playback uses I2S1.
- * This profile does not use SD/IMU.
+ * The PDM microphone uses I2S0. The board has no speaker. This profile does
+ * not use SD/IMU.
  */
-#include <math.h>
 #include <string.h>
 
 #include "driver/i2c_master.h"
 #include "driver/i2s_pdm.h"
-#include "driver/i2s_std.h"
 #include "driver/ledc.h"
 #include "driver/rtc_io.h"
 #include "driver/spi_master.h"
@@ -55,9 +52,6 @@
 #define TOUCH_IRQ GPIO_NUM_44   /* D7 */
 #define MIC_CLK GPIO_NUM_1      /* D0 */
 #define MIC_DATA GPIO_NUM_2     /* D1 */
-#define SPK_DATA GPIO_NUM_38    /* D11 -> MAX98357A DIN */
-#define SPK_BCLK GPIO_NUM_39    /* D12 -> MAX98357A BCLK */
-#define SPK_WS GPIO_NUM_40      /* D13 -> MAX98357A LRC/LRCLK */
 #define TALK_GPIO GPIO_NUM_11   /* D19 / USR1, active low */
 #define AUX_GPIO GPIO_NUM_42    /* D15 / USR2, active low */
 
@@ -66,13 +60,10 @@ static esp_lcd_panel_handle_t s_panel;
 static esp_lcd_panel_io_handle_t s_panel_io;
 static i2c_master_dev_handle_t s_touch;
 static i2s_chan_handle_t s_mic;
-static i2s_chan_handle_t s_spk_tx;
 static muse_gpio_button_t s_talk, s_aux;
 static bool s_mic_on;
-static bool s_spk_on;
 static bool s_mic_settled;
 static int32_t s_mic_dc;
-static int s_gain_q8 = 256;
 static lv_point_t s_touch_point;
 
 static esp_err_t init(void)
@@ -234,92 +225,7 @@ static void set_brightness(int pct)
 }
 static void panel_sleep(bool sleep) { esp_lcd_panel_disp_sleep(s_panel, sleep); }
 
-static int mic_enable(const audio_codec_data_if_t *h, esp_codec_dev_type_t type, bool on)
-{
-    (void)h; (void)type;
-    if (on != s_mic_on) {
-        if ((on ? i2s_channel_enable(s_mic) : i2s_channel_disable(s_mic)) != ESP_OK) {
-            return ESP_CODEC_DEV_DRV_ERR;
-        }
-        s_mic_on = on;
-        s_mic_settled = false;
-    }
-    return ESP_CODEC_DEV_OK;
-}
-static int mic_read(const audio_codec_data_if_t *h, uint8_t *data, int size)
-{
-    (void)h;
-    if (size <= 0 || size % 4 != 0) { return ESP_CODEC_DEV_READ_FAIL; }
-    int16_t mono[MUSE_AUDIO_CHUNK];
-    int16_t *stereo = (int16_t *)data;
-    for (int left = size / 4; left > 0;) {
-        int frames = left > MUSE_AUDIO_CHUNK ? MUSE_AUDIO_CHUNK : left;
-        size_t got = 0;
-        size_t bytes = frames * sizeof(int16_t);
-        if (i2s_channel_read(s_mic, mono, bytes, &got, 1000) != ESP_OK || got != bytes) {
-            return ESP_CODEC_DEV_READ_FAIL;
-        }
-        if (!s_mic_settled) {
-            int32_t sum = 0;
-            for (int i = 0; i < frames; i++) { sum += mono[i]; }
-            s_mic_dc = sum / frames * 256;
-            s_mic_settled = true;
-        }
-        for (int i = 0; i < frames; i++) {
-            /* Remove PDM filter DC before gain, so it cannot cause clipping.
-             * Muse's shared 80 Hz high-pass then removes residual rumble. */
-            s_mic_dc += (mono[i] * 256 - s_mic_dc) >> 8;
-            int value = (mono[i] - (s_mic_dc >> 8)) * s_gain_q8 / 256;
-            int16_t sample = value < INT16_MIN ? INT16_MIN : (value > INT16_MAX ? INT16_MAX : value);
-            stereo[2*i] = stereo[2*i+1] = sample;
-        }
-        stereo += frames * 2;
-        left -= frames;
-    }
-    return ESP_CODEC_DEV_OK;
-}
-static void set_mic_gain(esp_codec_dev_handle_t mic, int db)
-{
-    (void)mic;
-    /* Unity at the UI's default 30 dB; analogue codec gain does not apply to PDM. */
-    s_gain_q8 = (int)(256.0f * powf(10.0f, (db - 30) / 20.0f));
-}
-static int spk_enable(const audio_codec_data_if_t *h, esp_codec_dev_type_t type, bool on)
-{
-    (void)h; (void)type;
-    if (on != s_spk_on) {
-        esp_err_t err = on ? i2s_channel_enable(s_spk_tx) : i2s_channel_disable(s_spk_tx);
-        if (err != ESP_OK) {
-            ESP_LOGE(TAG, "speaker %s failed: %s", on ? "enable" : "disable", esp_err_to_name(err));
-            return ESP_CODEC_DEV_DRV_ERR;
-        }
-        s_spk_on = on;
-    }
-    return ESP_CODEC_DEV_OK;
-}
-static bool spk_is_open(const audio_codec_data_if_t *h)
-{
-    (void)h;
-    /* Codec-dev probes the data interface before calling enable(true), and
-     * again on reopening after sleep. Report initialized hardware here;
-     * spk_write separately checks whether transmission has been enabled. */
-    return s_spk_tx != NULL;
-}
-static int spk_write(const audio_codec_data_if_t *h, uint8_t *data, int size)
-{
-    (void)h;
-    if (!s_spk_on || size < 0 || size % 4 != 0) { return ESP_CODEC_DEV_WRITE_FAIL; }
-    if (size == 0) { return ESP_CODEC_DEV_OK; }
-    size_t written = 0;
-    /* Both slots carry Muse's mono sample, so the amplifier can select either
-     * channel or their average. Codec-dev applies the software volume first.
-     * The I2S driver takes milliseconds, not FreeRTOS ticks, for this timeout. */
-    if (i2s_channel_write(s_spk_tx, data, size, &written, 1000) != ESP_OK || written != (size_t)size) {
-        return ESP_CODEC_DEV_WRITE_FAIL;
-    }
-    return ESP_CODEC_DEV_OK;
-}
-static esp_err_t audio_init(esp_codec_dev_handle_t *spk, esp_codec_dev_handle_t *mic)
+static esp_err_t mic_init(void)
 {
     i2s_chan_config_t channel = I2S_CHANNEL_DEFAULT_CONFIG(I2S_NUM_0, I2S_ROLE_MASTER);
     channel.dma_desc_num = 4;
@@ -332,36 +238,42 @@ static esp_err_t audio_init(esp_codec_dev_handle_t *spk, esp_codec_dev_handle_t 
     };
     ESP_RETURN_ON_ERROR(i2s_channel_init_pdm_rx_mode(s_mic, &pdm), TAG, "PDM mode");
     gpio_set_drive_capability(MIC_CLK, GPIO_DRIVE_CAP_0);
+    ESP_LOGI(TAG, "PDM mic on I2S0, %d Hz; no speaker", MUSE_AUDIO_RATE);
+    return ESP_OK;
+}
 
-    /* PDM RX conversion exists only on I2S0 on the S3. Use the independent
-     * I2S1 controller for the amplifier so playback cannot reconfigure the mic. */
-    i2s_chan_config_t speaker = I2S_CHANNEL_DEFAULT_CONFIG(I2S_NUM_1, I2S_ROLE_MASTER);
-    /* 30 ms of TX DMA (1920 bytes) leaves internal RAM for Muse's TLS/Link
-     * sessions. muse_audio_write supplies 20 ms blocks with backpressure. */
-    speaker.dma_desc_num = 3;
-    speaker.dma_frame_num = MUSE_AUDIO_RATE / 100;
-    speaker.auto_clear = true;  /* Idle DMA sends silence instead of stale speech. */
-    ESP_RETURN_ON_ERROR(i2s_new_channel(&speaker, &s_spk_tx, NULL), TAG, "speaker channel");
-    const i2s_std_config_t standard = {
-        .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(MUSE_AUDIO_RATE),
-        .slot_cfg = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO),
-        .gpio_cfg = {
-            .mclk = I2S_GPIO_UNUSED, .bclk = SPK_BCLK, .ws = SPK_WS,
-            .dout = SPK_DATA, .din = I2S_GPIO_UNUSED,
-        },
-    };
-    ESP_RETURN_ON_ERROR(i2s_channel_init_std_mode(s_spk_tx, &standard), TAG, "MAX98357A I2S mode");
-    static const audio_codec_data_if_t mic_if = { .enable = mic_enable, .read = mic_read };
-    static const audio_codec_data_if_t spk_if = {
-        .enable = spk_enable, .is_open = spk_is_open, .write = spk_write,
-    };
-    esp_codec_dev_cfg_t in = { .dev_type = ESP_CODEC_DEV_TYPE_IN, .data_if = &mic_if };
-    esp_codec_dev_cfg_t out = { .dev_type = ESP_CODEC_DEV_TYPE_OUT, .data_if = &spk_if };
-    *mic = esp_codec_dev_new(&in);
-    *spk = esp_codec_dev_new(&out);
-    ESP_LOGI(TAG, "PDM mic on I2S0; MAX98357A on I2S1: DIN=%d BCLK=%d LRCLK=%d, %d Hz stereo 16-bit",
-             SPK_DATA, SPK_BCLK, SPK_WS, MUSE_AUDIO_RATE);
-    return *mic && *spk ? ESP_OK : ESP_ERR_NO_MEM;
+static esp_err_t mic_power(bool on)
+{
+    if (on == s_mic_on) {
+        return ESP_OK;
+    }
+    ESP_RETURN_ON_ERROR(on ? i2s_channel_enable(s_mic) : i2s_channel_disable(s_mic), TAG, "PDM %s",
+                        on ? "start" : "stop");
+    s_mic_on = on;
+    s_mic_settled = false;
+    return ESP_OK;
+}
+
+/* Mono PDM samples with the PDM filter's DC offset removed; muse_audio applies the gain. */
+static esp_err_t mic_read(int16_t *mono, size_t frames)
+{
+    size_t bytes = 0;
+    ESP_RETURN_ON_ERROR(i2s_channel_read(s_mic, mono, frames * sizeof(*mono), &bytes, 1000), TAG, "PDM read");
+    if (bytes != frames * sizeof(*mono)) {
+        return ESP_ERR_TIMEOUT;
+    }
+    if (!s_mic_settled) {
+        int32_t sum = 0;
+        for (size_t i = 0; i < frames; i++) { sum += mono[i]; }
+        s_mic_dc = sum / (int32_t)frames * 256;
+        s_mic_settled = true;
+    }
+    for (size_t i = 0; i < frames; i++) {
+        s_mic_dc += (mono[i] * 256 - s_mic_dc) >> 8;
+        int value = mono[i] - (s_mic_dc >> 8);
+        mono[i] = value < INT16_MIN ? INT16_MIN : (value > INT16_MAX ? INT16_MAX : value);
+    }
+    return ESP_OK;
 }
 static unsigned poll_buttons(void)
 {
@@ -398,7 +310,7 @@ static const muse_board_t s_board = {
     .frame_ms = 40, .init = init, .display_start = display_start,
     .display_lock = display_lock, .display_unlock = esp_lv_adapter_unlock,
     .set_brightness = set_brightness, .panel_sleep = panel_sleep,
-    .audio_init = audio_init, .mic_slot = 0, .set_mic_gain = set_mic_gain,
+    .mic_init = mic_init, .mic_power = mic_power, .mic_read = mic_read,
     .poll_buttons = poll_buttons, .read_power = read_power, .power_off = power_off,
 };
 const muse_board_t *muse_board_get(void) { return &s_board; }

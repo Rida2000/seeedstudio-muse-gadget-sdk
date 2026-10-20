@@ -82,7 +82,7 @@ are documented separately; this is not a generic ESP-VoCat profile.
 | Images from Muse | — | — | ✅ | ✅ | ✅ | Black and white | Black and white | Six colours | Four grays (checked on one unit) | — | — | ✅ | ✅ | ✅ | ✅ | ✅ | — | — | ✅ | ✅ | ✅ | — | ✅ | ✅ | Enabled | Enabled | Enabled | Enabled | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | — | Enabled |
 | UI and settings | — | — | — | — | — | — | — | — | Basic navigation checked | — | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Experimental | ✅ | ✅ | ✅ | Experimental | Experimental | Experimental | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | Experimental | Experimental |
 | Push-to-talk | — | — | — | — | — | — | — | — | AI voice note checked; screen mic unverified | ✅ | XIAO BOOT | ✅ | ✅ | ✅ | ✅ | ✅ | Text replies | Text replies | ✅ | ✅ | ✅ | Text replies (experimental) | ✅ | ✅ | USR1 | ENTER | ENTER | ENTER | ✅ | ✅ | ✅ | — | With an added I2S mic | ✅ | — | — | Text replies (experimental) | Screen mic |
-| Speaker and mic | — | — | — | — | — | — | — | — | PDM voice note checked, no speaker | ✅ | 16 kHz I2S | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Buzzer and mic | ES8311 (experimental) | ✅ | ✅ | PDM mic; external MAX98357A | ES8311 / ES7243E | ES8311 / ES7243E | ES8311 / ES7243E | ✅ | ✅ | ES8311 | — | Speaker (NS4168), no mic | ES8311, ES7210 | — | — | ES8311 (experimental) | ES8311 / ES7210 |
+| Speaker and mic | — | — | — | — | — | — | — | — | PDM voice note checked, no speaker | ✅ | 16 kHz I2S | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Buzzer and mic | ES8311 (experimental) | ✅ | ✅ | PDM mic, no speaker | ES8311 / ES7243E | ES8311 / ES7243E | ES8311 / ES7243E | ✅ | ✅ | ES8311 | — | Speaker (NS4168), no mic | ES8311, ES7210 | — | — | ES8311 (experimental) | ES8311 / ES7210 |
 | Air sensors | — | — | — | — | D1S, D1Pro | — | Temperature, humidity | Temperature, humidity | Temperature, humidity | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
 | Touch | — | — | — | — | — | — | — | — | GT911 (checked on one unit) | — | — | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | — | — | — | ✅ | ✅ | ✅ | CST820 | CST820B | CST9220 | ✅ | ✅ | ✅ | — | ✅ | — | ✅ | ✅ | — | ✅ |
 | Battery status | — | — | — | — | — | — | — | — | BQ27220 %/mV and charging checked | — | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Voltage only | — | — | ✅ | — | Voltage and percent | Voltage and percent | Voltage and percent | ✅ | ✅ | Voltage only | — | — | Percent only | — | Voltage only (unverified) | No charging state | Unverified |
@@ -294,9 +294,10 @@ flashing needs nothing special: `tools/muse/board.sh flash stopwatch`.
 
 The Seeed XIAO ESP32-S3 1.47 Touch Display has a 172×320 JD9853A LCD, AXS5106L
 touch and a PDM mic. **USR1 is push-to-talk and pairing confirmation, USR2
-sleeps and wakes the screen.** It has no speaker: a MAX98357A on D11/D12/D13
-plays the device's sounds. The IMU, MicroSD slot and battery input aren't
-used, and OTA is off. Its [setup guide](seeed-xiao-s3-147.md) has the pins and
+sleeps and wakes the screen.** It has a microphone and no speaker, so replies
+are read on screen. The IMU, MicroSD slot and battery input aren't used, and
+OTA is off. Pairing, push-to-talk, touch settings and screen sleep were checked
+on one unit. Its [setup guide](seeed-xiao-s3-147.md) has the pins and
 wiring.
 
 The Seeed XIAO AMOLED Display carries a XIAO ESP32-S3 Plus and takes one of

@@ -92,7 +92,7 @@ menu "Muse"
             depends on IDF_TARGET_ESP32S3
 
         config MUSE_BOARD_SEEED_XIAO_S3_147
-            bool "Seeed XIAO ESP32-S3 1.47 Touch Display (PDM mic, external MAX98357A)"
+            bool "Seeed XIAO ESP32-S3 1.47 Touch Display (PDM mic, no speaker)"
             depends on IDF_TARGET_ESP32S3
 
         config MUSE_BOARD_SEEED_XIAO_AMOLED_205

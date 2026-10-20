@@ -205,7 +205,7 @@ status screen.
 | M5Stack Cardputer ADV (experimental) | UI, GO/Space push-to-talk with text replies, Esc/Enter/arrow menu controls | `tools/muse/board.sh build cardputer-adv` |
 | M5Stack StickS3 | UI, push-to-talk, two-button menu, images | see [`AGENTS.md`](AGENTS.md#boards-with-the-full-ui-by-hand) |
 | M5Stack StopWatch | UI, push-to-talk, settings, images | see [`AGENTS.md`](AGENTS.md#boards-with-the-full-ui-by-hand) |
-| Seeed XIAO ESP32-S3 1.47 Touch Display | UI, USR1 push-to-talk, touch, settings, images; external MAX98357A for sound | `tools/muse/board.sh build xiao147` |
+| Seeed XIAO ESP32-S3 1.47 Touch Display | UI, USR1 push-to-talk, touch, settings, images; PDM mic, no speaker | `tools/muse/board.sh build xiao147` |
 | Seeed XIAO AMOLED Display, 2.05" module (experimental) | UI, ENTER push-to-talk, touch, settings, images | `tools/muse/board.sh build xiao-amoled-205` |
 | Seeed XIAO AMOLED Display, 1.75" round module (experimental) | UI, ENTER push-to-talk, touch, settings, images | `tools/muse/board.sh build xiao-amoled-175` |
 | Seeed XIAO AMOLED Display, 2.16" square module (experimental) | UI, ENTER push-to-talk, touch, settings, images | `tools/muse/board.sh build xiao-amoled-216` |

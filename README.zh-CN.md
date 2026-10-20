@@ -53,7 +53,7 @@ limitations under the License.
 | [reTerminal E1002](https://www.seeedstudio.com/reTerminal-E1002-p-6533.html) | 同上，换成 7.3 英寸六色电子墨水屏，能显示彩色图片。 | [网页烧录器](#方法-a网页烧录器最简单) |
 | [reTerminal Sticky](https://www.seeedstudio.com/reTerminal-Sticky-p-6861.html) *（实验性）* | 3.97 英寸电子墨水触摸屏上运行 Muse。按住 AI 键发语音，在屏幕上看回复（支持中文和日文）。灰度图片、温湿度、电池。没有喇叭。 | [自己编译](#方法-c自己编译) |
 | [reSpeaker Lite（搭配 XIAO ESP32-S3）](https://wiki.seeedstudio.com/xiao_respeaker/) *（实验性）* | 按住 XIAO 上的 BOOT 键说话，回复显示在 Muse app 里。 | [自己编译](#方法-c自己编译) |
-| [XIAO 1.47 英寸 IPS 触摸屏（ESP32-S3）](https://www.seeedstudio.com/1-47-Inch-Touch-Display-Powered-by-XIAO-ESP32-S3-Plus-p-6996.html) *（实验性）* | 1.47 英寸触摸屏上有一张会动的脸。按住 USR1 说话，在屏幕上看回复。能显示 Muse 发来的图片。外接 MAX98357A 功放就能出声。 | [自己编译](#方法-c自己编译) |
+| [XIAO 1.47 英寸 IPS 触摸屏（ESP32-S3）](https://www.seeedstudio.com/1-47-Inch-Touch-Display-Powered-by-XIAO-ESP32-S3-Plus-p-6996.html) *（实验性）* | 1.47 英寸触摸屏上有一张会动的脸。按住 USR1 说话，在屏幕上看回复。能显示 Muse 发来的图片。没有喇叭。 | [自己编译](#方法-c自己编译) |
 | XIAO AMOLED Display，1.75 英寸圆屏、2.05 英寸屏或 2.16 英寸方屏 *（实验性）* | AMOLED 触摸屏上有一张会动的脸。按住 ENTER 说话，在屏幕上看回复。能显示 Muse 发来的图片，带电池。 | [自己编译](#方法-c自己编译) |
 
 这些设备都只用 2.4 GHz Wi-Fi。包括其他品牌在内的完整板卡列表在 [`esp32/devices/`](esp32/devices/README.md)。

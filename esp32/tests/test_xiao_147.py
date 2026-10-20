@@ -1,4 +1,4 @@
-"""Exercise XIAO touch decoding and the speaker codec lifecycle."""
+"""Exercise the XIAO 1.47 touch report decoding."""
 import os
 from pathlib import Path
 import shlex
@@ -11,35 +11,6 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class Xiao147Tests(unittest.TestCase):
-    def test_speaker_codec_lifecycle(self):
-        cc = shlex.split(os.environ.get("CC", "cc"))
-        if not cc or not shutil.which(cc[0]):
-            self.skipTest("host C compiler is not installed")
-        codec = ROOT / "managed_components/espressif__esp_codec_dev"
-        if not (codec / "esp_codec_dev.c").exists():
-            self.skipTest("build once to obtain the real esp_codec_dev component")
-        source = (ROOT / "components/muse/boards/board_seeed_xiao_s3_147.c").read_text()
-        callbacks = source[source.index("static int spk_enable("):source.index("static esp_err_t audio_init(")]
-        with tempfile.TemporaryDirectory() as tmp:
-            directory = Path(tmp)
-            (directory / "board_speaker_callbacks.inc").write_text(callbacks)
-            (directory / "esp_err.h").write_text(
-                "typedef int esp_err_t;\n#define ESP_OK 0\n#define ESP_FAIL -1\n"
-                "#define ESP_ERR_NO_MEM 0x101\n#define ESP_ERR_INVALID_ARG 0x102\n"
-                "#define ESP_ERR_INVALID_STATE 0x103\n#define ESP_ERR_NOT_FOUND 0x105\n"
-                "#define ESP_ERR_NOT_SUPPORTED 0x106\n")
-            (directory / "esp_log.h").write_text(
-                "#include <stdlib.h>\n#include <stdio.h>\n"
-                "#define ESP_LOGE(tag, ...) do { (void)(tag); if (0) fprintf(stderr, __VA_ARGS__); } while (0)\n"
-                "#define ESP_LOGI(tag, ...) do { (void)(tag); if (0) fprintf(stderr, __VA_ARGS__); } while (0)\n")
-            executable = directory / "speaker.exe"
-            subprocess.run([*cc, "-std=c11", "-Wall", "-Wextra",
-                            "-I", str(directory), "-I", str(codec / "include"),
-                            "-I", str(codec / "interface"), "-I", str(codec),
-                            str(ROOT / "tests/xiao_147_audio_harness.c"),
-                            str(codec / "esp_codec_dev.c"), "-lm", "-o", str(executable)], check=True)
-            subprocess.run([str(executable)], check=True, timeout=10)
-
     def test_touch_report_bounds_and_release(self):
         cc = shlex.split(os.environ.get("CC", "cc"))
         if not cc or not shutil.which(cc[0]):
