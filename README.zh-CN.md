@@ -332,7 +332,7 @@ tools/muse/paced_esptool.py --chip esp32s3 -p /dev/cu.usbmodem5A7A0185113 write-
 | [**Linux Device SDK**](linux) | 把树莓派或 Linux 电脑变成 Muse gadget。 |
 | [**Web flasher**](web-flasher) | 方法 A 用到的浏览器安装器。 |
 
-每个目录都有一个入门用的 `README.md`，以及给 [Muse Code](https://developer.meta.com/ai/lp/muse-code/) 这类编程助手看的 `AGENTS.md`。电池功耗测量见 [`esp32/docs/power/`](esp32/docs/power/README.md)。
+AI 编程助手从 [`AGENTS.md`](AGENTS.md) 读起（Claude Code 通过 [`CLAUDE.md`](CLAUDE.md) 读取它）：里面有 Seeed 设备总表、怎么在这些设备上做应用和 Demo，以及怎么贡献代码。每个目录都有一个入门用的 `README.md`，以及给 [Muse Code](https://developer.meta.com/ai/lp/muse-code/) 这类编程助手看的 `AGENTS.md`。电池功耗测量见 [`esp32/docs/power/`](esp32/docs/power/README.md)。
 
 ## 社区
 

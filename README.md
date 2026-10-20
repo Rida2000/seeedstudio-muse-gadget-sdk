@@ -434,9 +434,12 @@ settings.
 | [**Linux Device SDK**](linux) | Turn a Raspberry Pi or Linux box into a Muse gadget. |
 | [**Web flasher**](web-flasher) | The browser installer used in Option A. |
 
-Each directory has a `README.md` to start with and an `AGENTS.md` for coding
-agents like [Muse Code](https://developer.meta.com/ai/lp/muse-code/). For
-battery power profiling, see [`esp32/docs/power/`](esp32/docs/power/README.md).
+Coding agents start at [`AGENTS.md`](AGENTS.md), which Claude Code reads
+through [`CLAUDE.md`](CLAUDE.md): the Seeed devices, how to build apps and
+demos on them, and how to contribute. Each directory also has a `README.md` to
+start with and an `AGENTS.md` for coding agents like
+[Muse Code](https://developer.meta.com/ai/lp/muse-code/). For battery power
+profiling, see [`esp32/docs/power/`](esp32/docs/power/README.md).
 
 ## Community
 

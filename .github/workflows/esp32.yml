@@ -163,6 +163,15 @@ jobs:
           - board: muse-seeed-xiao-s3-147
             target: esp32s3
             overlays: ";devices/sdkconfig.muse;devices/sdkconfig.muse-seeed-xiao-s3-147"
+          - board: muse-seeed-xiao-amoled-175
+            target: esp32s3
+            overlays: ";devices/sdkconfig.muse;devices/sdkconfig.muse-seeed-xiao-amoled-175"
+          - board: muse-seeed-xiao-amoled-205
+            target: esp32s3
+            overlays: ";devices/sdkconfig.muse;devices/sdkconfig.muse-seeed-xiao-amoled-205"
+          - board: muse-seeed-xiao-amoled-216
+            target: esp32s3
+            overlays: ";devices/sdkconfig.muse;devices/sdkconfig.muse-seeed-xiao-amoled-216"
           - board: muse-aipi
             target: esp32s3
             overlays: ";devices/sdkconfig.muse;devices/sdkconfig.muse-aipi"
