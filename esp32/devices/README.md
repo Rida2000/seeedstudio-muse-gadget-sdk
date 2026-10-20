@@ -296,8 +296,8 @@ The Seeed XIAO ESP32-S3 1.47 Touch Display has a 172×320 JD9853A LCD, AXS5106L
 touch and a PDM mic. **USR1 is push-to-talk and pairing confirmation, USR2
 sleeps and wakes the screen.** It has a microphone and no speaker, so replies
 are read on screen. The IMU, MicroSD slot and battery input aren't used, and
-OTA is off. Pairing, push-to-talk, touch settings and screen sleep were checked
-on one unit. Its [setup guide](seeed-xiao-s3-147.md) has the pins and
+OTA is off. Pairing, push-to-talk, touch settings, screen sleep and power off were
+checked on one unit. Its [setup guide](seeed-xiao-s3-147.md) has the pins and
 wiring.
 
 The Seeed XIAO AMOLED Display carries a XIAO ESP32-S3 Plus and takes one of

@@ -29,7 +29,8 @@ always read on screen. The board's LSM6DS3 IMU, MicroSD slot and battery input
 aren't used yet, and OTA is off for this profile: update it over USB.
 
 Checked on one unit: boot, BLE pairing with USR1, Wi-Fi, push-to-talk with
-replies on screen, touch settings and USR2 sleep and wake. Recognition is
+replies on screen, touch settings, USR2 sleep and wake, and power off from
+Settings with USR1 to wake. Recognition is
 best within about 20 cm in a quiet room.
 
 ## Pins
