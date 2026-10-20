@@ -90,7 +90,7 @@ limitations under the License.
 
 1. 用 USB 线把设备连到电脑。
    - **SenseCAP Watcher：** 用**底部**的 USB-C 口。
-2. 用 Chrome 或 Edge 打开 [Muse Gadget Web Flasher](https://facebookincubator.github.io/muse-gadget-sdk/)。
+2. 用 Chrome 或 Edge 打开 [Muse Gadget Web Flasher](https://seeed-projects.github.io/seeedstudio-muse-gadget-sdk/)。
 3. 在 **1 · SDK token** 里粘贴你的 token。页面会记住它，下次不用再填。
 4. 在 **2 · Install** 里，从 **Board** 中选你的设备，然后点 **Connect & install**。
 5. 浏览器会让你选一个串口。选你设备的那个，点 **连接**。

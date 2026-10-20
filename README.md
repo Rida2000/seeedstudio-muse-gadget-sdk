@@ -116,7 +116,7 @@ reTerminal E1002**. Everything happens in your browser.
 1. Plug the device into your computer with the USB cable.
    - **SenseCAP Watcher:** use the USB-C port on the **bottom**.
 2. Open the
-   [Muse Gadget Web Flasher](https://facebookincubator.github.io/muse-gadget-sdk/)
+   [Muse Gadget Web Flasher](https://seeed-projects.github.io/seeedstudio-muse-gadget-sdk/)
    in Chrome or Edge.
 3. In **1 · SDK token**, paste your token. The page remembers it for next time.
 4. In **2 · Install**, choose your device under **Board**, then click

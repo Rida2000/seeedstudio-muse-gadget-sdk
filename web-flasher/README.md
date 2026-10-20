@@ -1,6 +1,8 @@
 # Web flasher
 
-A page on GitHub Pages that flashes Muse Gadget firmware from Chrome or Edge
+A page on GitHub Pages
+([seeed-projects.github.io/seeedstudio-muse-gadget-sdk](https://seeed-projects.github.io/seeedstudio-muse-gadget-sdk/))
+that flashes Muse Gadget firmware from Chrome or Edge
 over Web Serial, using [ESP Web Tools](https://esphome.github.io/esp-web-tools/).
 The ESP32 CI (`.github/workflows/esp32.yml`) packages the boards listed in
 `boards.json` from its own builds, assembles the site on every run, and deploys
