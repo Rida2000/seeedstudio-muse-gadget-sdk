@@ -187,7 +187,7 @@ cd seeedstudio-muse-gadget-sdk/esp32
 | SenseCAP Indicator | `build-sensecap-indicator` |
 | reTerminal E1001 | `build-reterminal-e1001` |
 | reTerminal E1002 | `build-reterminal-e1002` |
-| reTerminal Sticky | `build-reterminal-sticky-full` |
+| reTerminal Sticky | `build-reterminal-sticky` |
 | reSpeaker Lite（XIAO） | `build-seeed-respeaker-lite` |
 | XIAO AMOLED，1.75 英寸圆屏 | `build-muse-seeed-xiao-amoled-175` |
 | XIAO AMOLED，2.05 英寸屏 | `build-muse-seeed-xiao-amoled-205` |
@@ -196,7 +196,7 @@ cd seeedstudio-muse-gadget-sdk/esp32
 用下面这条命令把 token 写进去。把 `mgst_YOUR_TOKEN` 换成你的 token（引号保留），把文件夹换成你设备的：
 
 ```sh
-perl -pi -e 's/^CONFIG_GADGET_SDK_TOKEN=.*/CONFIG_GADGET_SDK_TOKEN="mgst_YOUR_TOKEN"/' build-reterminal-sticky-full/sdkconfig
+perl -pi -e 's/^CONFIG_GADGET_SDK_TOKEN=.*/CONFIG_GADGET_SDK_TOKEN="mgst_YOUR_TOKEN"/' build-reterminal-sticky/sdkconfig
 ```
 
 然后再运行一次表格里的**编译**命令。如果提示 token 无效，就从 gadgets.muse.ai 重新复制一遍：它一共 48 个字符，以 `mgst_` 开头。

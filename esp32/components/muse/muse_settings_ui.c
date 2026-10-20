@@ -22,7 +22,6 @@
 
 #include "esp_app_desc.h"
 #include "esp_mac.h"
-#include "esp_log.h"
 #include "esp_timer.h"
 
 #include "muse_audio.h"
@@ -388,7 +387,7 @@ static void show(lv_obj_t *p)
     }
     lv_obj_remove_flag(p, LV_OBJ_FLAG_HIDDEN);
     s_current = p;
-    if (p == s_sound) {
+    if (p == s_sound && !muse_board->epaper) {   /* as in the tick: no meter on e-paper */
         muse_voice_set_monitor(true);
     }
     muse_ui_set_swipe_enabled(p == s_home);
@@ -552,6 +551,11 @@ static void build_text_page(lv_obj_t *tile)
     lv_obj_set_style_text_font(s_text_ta, &lv_font_montserrat_16, LV_PART_TEXTAREA_PLACEHOLDER);
     lv_obj_set_style_text_color(s_text_ta, lv_color_hex(COLOR_DIM), LV_PART_TEXTAREA_PLACEHOLDER);
     lv_obj_add_state(s_text_ta, LV_STATE_FOCUSED);
+    if (muse_board->epaper) {
+        /* The theme blinks the cursor every 400 ms, and an e-paper panel
+         * refreshes only once the screen has stopped changing. */
+        lv_obj_set_style_anim_duration(s_text_ta, 0, LV_PART_CURSOR);
+    }
     lv_obj_align(s_text_ta, LV_ALIGN_TOP_MID, 0, text_y(76));
 
     /* A full keyboard's keys are too small to hit on a screen under 2". */
@@ -1127,7 +1131,6 @@ static void tick_sleep(void);
 static void on_sleep_choice(lv_event_t *e)
 {
     int secs = SLEEP_CHOICES[(int)(intptr_t)lv_event_get_user_data(e)];
-    if (muse_board->epaper) ESP_LOGI("muse_ui", "sleep option selected: %d s", secs);
     muse_settings_set_sleep_s(secs);
     tick_sleep();
 }

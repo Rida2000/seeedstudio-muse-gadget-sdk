@@ -60,7 +60,21 @@ class LinkEpaperStatusTest(unittest.TestCase):
         helper = (ROOT / "tools/board.sh").read_text()
         self.assertIn("reterminal-sticky)", helper)
         self.assertIn('DEFAULTS="$DEFAULTS;devices/sdkconfig.muse;devices/sdkconfig.$BOARD"', helper)
-        self.assertIn('build-$BOARD-full', helper)
+        self.assertNotIn('build-$BOARD-full', helper)   # one build directory per board, as for the rest
+        # Its USB-C reaches the console UART through a bridge: the Muse tools'
+        # serial commands (>status, chat.py) read UART, as on the LCD7.
+        for setting in ("CONFIG_ESP_CONSOLE_UART_DEFAULT=y", "CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=n"):
+            self.assertIn(setting, overlay)
+        console = (ROOT / "components/muse/Kconfig").read_text()
+        console = console[console.index("config MUSE_CONSOLE_UART"):]
+        self.assertIn("MUSE_BOARD_RETERMINAL_STICKY", console[:console.index("\n\n")])
+        # The microSD mount is opt-in until something reads the card.
+        kc = (ROOT / "components/muse/Kconfig").read_text()
+        sd = kc[kc.index("config MUSE_STICKY_SD"):]
+        self.assertIn("default n", sd[:sd.index("help")])
+        sticky = (ROOT / "components/muse/boards/board_reterminal_sticky.c").read_text()
+        task = sticky[:sticky.index("static void sd_task(")]
+        self.assertTrue(task.rstrip().endswith("#if CONFIG_MUSE_STICKY_SD"))
         workflow = (ROOT.parent / ".github/workflows/esp32.yml").read_text()
         self.assertIn('board: reterminal-sticky\n            target: esp32s3\n'
                       '            overlays: ";devices/sdkconfig.muse;devices/sdkconfig.reterminal-sticky"',
@@ -134,7 +148,29 @@ class LinkEpaperStatusTest(unittest.TestCase):
         self.assertIn('tick_sleep();', sleep)
         self.assertIn('s_sleep_rows', sleep)
         self.assertIn('muse_board->epaper ? 30000000 : 1000000', ui)
-        self.assertIn('sleep option selected:', sleep)
+        self.assertNotIn('ESP_LOGI(', sleep)   # no leftover debug log
+        # No mic meter on e-paper, whether the Sound page opens or is ticked.
+        self.assertIn('if (p == s_sound && !muse_board->epaper) {', ui)
+        self.assertIn('visible && s_current == s_sound && !muse_board->epaper', ui)
+        # A blinking cursor would keep the panel from ever settling to refresh.
+        text = ui[ui.index("s_text_ta = lv_textarea_create(s_text);"):]
+        self.assertIn("lv_obj_set_style_anim_duration(s_text_ta, 0, LV_PART_CURSOR);",
+                      text[:text.index("lv_obj_align(s_text_ta")])
+
+    def test_sticky_mic_only_board_shows_the_mic(self):
+        # Sticky has a PDM mic (mic_init) and no codec (audio_init): once
+        # paired, the on-screen mic carries its touch-to-talk.
+        ui = (ROOT / "components/muse/muse_ui.c").read_text()
+        self.assertIn("bool mic = paired && (muse_board->audio_init || muse_board->mic_init);", ui)
+        self.assertIn("lv_obj_set_flag(s_mic_icon, LV_OBJ_FLAG_HIDDEN, !mic);", ui)
+        # The speaker button stays a codec board's.
+        self.assertIn("lv_obj_set_flag(s_speaker, LV_OBJ_FLAG_HIDDEN, !paired || !muse_board->audio_init);", ui)
+
+    def test_sticky_reports_four_grays_to_muse(self):
+        ui = (ROOT / "components/muse/muse_ui.c").read_text()
+        self.assertIn("return muse_board->epaper ? 2 : 16;", ui)
+        led = (ROOT / "main/led_status.c").read_text()
+        self.assertIn("return muse_ui_image_size(&w, &h) ? muse_ui_image_bits() : 0;", led)
 
     def test_sticky_panel(self):
         panel = (ROOT / "main/epd_ssd1677.c").read_text()
@@ -281,11 +317,81 @@ int main(void) {
     assert(!gray4_needs_refresh(dst, shown, sizeof(dst), true));
     shown[1] = 0;
     assert(gray4_needs_refresh(dst, shown, sizeof(dst), true));
+    /* Still for 700 ms, or changing for 3 s without a pause. */
+    assert(!gray4_refresh_due(1000000, 900000, 900000));
+    assert(gray4_refresh_due(1600000, 900000, 900000));
+    assert(!gray4_refresh_due(3000000, 2800000, 400000));
+    assert(gray4_refresh_due(3400000, 3200000, 400000));
     return 0;
 }
 """)
         cc = shlex.split(os.environ.get("CC", "cc"))
         binary = self.out / "sticky_ui_gray4"
+        compiled = subprocess.run([*cc, "-std=c11", "-Wall", "-Wextra", "-Werror",
+                                   str(harness), "-o", str(binary)], capture_output=True, text=True)
+        self.assertEqual(compiled.returncode, 0, compiled.stdout + compiled.stderr)
+        result = subprocess.run([str(binary)], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_sticky_epd_task_sleeps_unless_settling(self):
+        # Paused, or with nothing new, the panel task waits for the next flush
+        # instead of waking every 250 ms; it starts by looking, in case LVGL
+        # flushed before it existed.
+        board = (ROOT / "components/muse/boards/board_reterminal_sticky.c").read_text()
+        task = board[board.index("static void epd_task("):board.index("static void lvgl_task(")]
+        self.assertIn("bool settling = true;", task)
+        self.assertIn("ulTaskNotifyTake(pdTRUE, settling ? pdMS_TO_TICKS(250) : portMAX_DELAY);", task)
+        self.assertIn("settling = s_dirty && !s_paused;", task)
+        self.assertNotIn(".keyboard = true", board)   # touch boards have no button menu to label
+
+    def test_muse_images_dither_to_four_grays(self):
+        led = (ROOT / "main/led_status.c").read_text()
+        done = led[led.index("void led_status_draw_done(void) {"):]
+        self.assertIn("muse_ui_image_done();", done[:done.index("\n}\n")])
+        ui = (ROOT / "components/muse/muse_ui.c").read_text()
+        start = ui.index("static void dither_gray4_565(")
+        end = ui.index("void muse_ui_image_done(", start)
+        harness = self.out / "muse_dither_gray4.c"
+        harness.write_text("#include <assert.h>\n#include <stdint.h>\n#include <stddef.h>\n"
+                           "#include <string.h>\n" + ui[start:end] + """
+#define W 64
+#define H 32
+static int level(uint16_t p) {
+    for (int i = 0; i < 4; i++) {
+        static const uint16_t g[4] = {0x0000, 0x52AA, 0xAD55, 0xFFFF};
+        if (p == g[i]) return i;
+    }
+    return -1;
+}
+int main(void) {
+    static uint16_t px[W * H];
+    int16_t err[2 * (W + 2)];
+    /* The four grays come through exactly. */
+    const uint16_t exact[4] = {0x0000, 0x52AA, 0xAD55, 0xFFFF};
+    for (int i = 0; i < 4; i++) {
+        for (int k = 0; k < W * H; k++) px[k] = exact[i];
+        dither_gray4_565(px, W, H, err);
+        for (int k = 0; k < W * H; k++) assert(px[k] == exact[i]);
+    }
+    /* Mid gray (128) between two of them: a mix of 85 and 170 averaging 128. */
+    for (int k = 0; k < W * H; k++) px[k] = 0x8410;
+    dither_gray4_565(px, W, H, err);
+    long sum = 0;
+    int seen[4] = {0};
+    for (int k = 0; k < W * H; k++) {
+        int l = level(px[k]);
+        assert(l >= 0);
+        seen[l]++;
+        sum += l * 85;
+    }
+    assert(seen[1] > 0 && seen[2] > 0 && seen[0] == 0 && seen[3] == 0);
+    long avg = sum / (W * H);
+    assert(avg >= 120 && avg <= 136);
+    return 0;
+}
+""")
+        cc = shlex.split(os.environ.get("CC", "cc"))
+        binary = self.out / "muse_dither_gray4"
         compiled = subprocess.run([*cc, "-std=c11", "-Wall", "-Wextra", "-Werror",
                                    str(harness), "-o", str(binary)], capture_output=True, text=True)
         self.assertEqual(compiled.returncode, 0, compiled.stdout + compiled.stderr)

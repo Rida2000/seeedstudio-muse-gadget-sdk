@@ -233,7 +233,7 @@ after your device:
 | SenseCAP Indicator | `build-sensecap-indicator` |
 | reTerminal E1001 | `build-reterminal-e1001` |
 | reTerminal E1002 | `build-reterminal-e1002` |
-| reTerminal Sticky | `build-reterminal-sticky-full` |
+| reTerminal Sticky | `build-reterminal-sticky` |
 | reSpeaker Lite (XIAO) | `build-seeed-respeaker-lite` |
 | XIAO AMOLED, 1.75" round | `build-muse-seeed-xiao-amoled-175` |
 | XIAO AMOLED, 2.05" | `build-muse-seeed-xiao-amoled-205` |
@@ -243,7 +243,7 @@ Put your token in it with this command. Replace `mgst_YOUR_TOKEN` with your
 token, keeping the quotes, and the folder with your device's:
 
 ```sh
-perl -pi -e 's/^CONFIG_GADGET_SDK_TOKEN=.*/CONFIG_GADGET_SDK_TOKEN="mgst_YOUR_TOKEN"/' build-reterminal-sticky-full/sdkconfig
+perl -pi -e 's/^CONFIG_GADGET_SDK_TOKEN=.*/CONFIG_GADGET_SDK_TOKEN="mgst_YOUR_TOKEN"/' build-reterminal-sticky/sdkconfig
 ```
 
 Then run the **Build** command from the table again. If it says the token

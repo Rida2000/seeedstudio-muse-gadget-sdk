@@ -1396,9 +1396,11 @@ static void update_chrome(float now)
         lv_obj_set_flag(s_speaker, LV_OBJ_FLAG_HIDDEN, !paired || !muse_board->audio_init);
     }
     /* Unpaired, a press only says "SET UP MUSE FIRST", so the mic goes too.
-     * While a reply's layout is up it decides; that's only ever paired. */
-    if (s_mic_icon && !muse_board->rim_controls && s_answer < 0 && (paired && muse_board->audio_init) == lv_obj_has_flag(s_mic_icon, LV_OBJ_FLAG_HIDDEN)) {
-        lv_obj_set_flag(s_mic_icon, LV_OBJ_FLAG_HIDDEN, !paired || !muse_board->audio_init);
+     * While a reply's layout is up it decides; that's only ever paired. A
+     * microphone without a speaker (mic_init) still talks. */
+    bool mic = paired && (muse_board->audio_init || muse_board->mic_init);
+    if (s_mic_icon && !muse_board->rim_controls && s_answer < 0 && mic == lv_obj_has_flag(s_mic_icon, LV_OBJ_FLAG_HIDDEN)) {
+        lv_obj_set_flag(s_mic_icon, LV_OBJ_FLAG_HIDDEN, !mic);
     }
 }
 
@@ -1758,6 +1760,59 @@ bool muse_ui_image_size(int *w, int *h)
     *w = s_w;
     *h = s_h;
     return true;
+}
+
+int muse_ui_image_bits(void)
+{
+    return muse_board->epaper ? 2 : 16;
+}
+
+/* Floyd-Steinberg to four grays, in place: each pixel becomes black, 85, 170
+ * or white, so a panel that rounds every pixel to its nearest gray (the
+ * Sticky's) shows shading instead of bands. err holds 2 * (w + 2) values. */
+static void dither_gray4_565(uint16_t *px, int w, int h, int16_t *err)
+{
+    static const uint16_t grays[4] = { 0x0000, 0x52AA, 0xAD55, 0xFFFF };
+    int16_t *cur = err, *next = err + w + 2;
+    memset(err, 0, 2 * (size_t)(w + 2) * sizeof(*err));
+    for (int y = 0; y < h; y++) {
+        memset(next, 0, (size_t)(w + 2) * sizeof(*next));
+        for (int x = 0; x < w; x++) {
+            uint16_t p = px[(size_t)y * w + x];
+            int r = (p >> 11) & 31, g = (p >> 5) & 63, b = p & 31;
+            int v = ((77 * (r * 255 / 31) + 150 * (g * 255 / 63) + 29 * (b * 255 / 31)) >> 8) + cur[x + 1];
+            int level = (v * 3 + 127) / 255;
+            level = level < 0 ? 0 : level > 3 ? 3 : level;
+            int e = v - level * 85;
+            cur[x + 2] += (int16_t)(e * 7 / 16);
+            next[x] += (int16_t)(e * 3 / 16);
+            next[x + 1] += (int16_t)(e * 5 / 16);
+            next[x + 2] += (int16_t)(e / 16);
+            px[(size_t)y * w + x] = grays[level];
+        }
+        int16_t *t = cur;
+        cur = next;
+        next = t;
+    }
+}
+
+void muse_ui_image_done(void)
+{
+    if (!s_ready || muse_ui_image_bits() != 2) {
+        return;   /* a colour panel shows each rectangle as it comes */
+    }
+    int16_t *err = malloc(2 * (size_t)(s_w + 2) * sizeof(int16_t));
+    if (!err) {
+        return;   /* shown undithered: banded, but whole */
+    }
+    xSemaphoreTake(s_image_mutex, portMAX_DELAY);
+    if (s_image_buf) {
+        dither_gray4_565(s_image_buf, s_w, s_h, err);
+        s_image_area = (lv_area_t){ 0, 0, s_w - 1, s_h - 1 };
+        s_image_dirty = true;
+    }
+    xSemaphoreGive(s_image_mutex);
+    free(err);
 }
 
 bool muse_ui_image_draw(int x, int y, int w, int h, const uint16_t *pixels)
