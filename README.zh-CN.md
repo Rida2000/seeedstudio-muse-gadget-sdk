@@ -51,7 +51,7 @@ limitations under the License.
 | [SenseCAP Indicator](https://www.seeedstudio.com/SenseCAP-Indicator-D1-p-5643.html) | 4 英寸屏幕上显示状态和 Muse 发来的图片。D1S 和 D1Pro 能把 CO2、tVOC、温度和湿度告诉 Muse。 | [网页烧录器](#方法-a网页烧录器最简单) |
 | [reTerminal E1001](https://www.seeedstudio.com/reTerminal-E1001-p-6534.html) | 7.5 英寸黑白电子墨水屏上显示状态，能显示 Muse 发来的黑白图片，带温湿度。 | [网页烧录器](#方法-a网页烧录器最简单) |
 | [reTerminal E1002](https://www.seeedstudio.com/reTerminal-E1002-p-6533.html) | 同上，换成 7.3 英寸六色电子墨水屏，能显示彩色图片。 | [网页烧录器](#方法-a网页烧录器最简单) |
-| [reTerminal Sticky](https://www.seeedstudio.com/reTerminal-Sticky-p-6861.html) *（实验性）* | 3.97 英寸电子墨水触摸屏上运行 Muse。按住 AI 键发语音，在屏幕上看回复（支持中文和日文）。灰度图片、温湿度、电池。没有喇叭。 | [自己编译](#方法-c自己编译) |
+| [reTerminal Sticky](https://www.seeedstudio.com/reTerminal-Sticky-p-6861.html) *（实验性）* | 3.97 英寸电子墨水触摸屏上运行 Muse。按住 AI 键发语音，在屏幕上看回复（支持中文和日文）。灰度图片、温湿度、电池。没有喇叭。 | [网页烧录器](#方法-a网页烧录器最简单) |
 | [reSpeaker Lite（搭配 XIAO ESP32-S3）](https://wiki.seeedstudio.com/xiao_respeaker/) *（实验性）* | 按住 XIAO 上的 BOOT 键说话，回复显示在 Muse app 里。 | [自己编译](#方法-c自己编译) |
 | [XIAO 1.47 英寸 IPS 触摸屏（ESP32-S3）](https://www.seeedstudio.com/1-47-Inch-Touch-Display-Powered-by-XIAO-ESP32-S3-Plus-p-6996.html) | 1.47 英寸触摸屏上有一张会动的脸。按住 USR1 说话，在屏幕上看回复。能显示 Muse 发来的图片。没有喇叭。 | [自己编译](#方法-c自己编译) |
 | XIAO AMOLED Display，1.75 英寸圆屏、2.05 英寸屏或 2.16 英寸方屏 *（实验性）* | AMOLED 触摸屏上有一张会动的脸。按住 ENTER 说话，在屏幕上看回复。能显示 Muse 发来的图片，带电池。 | [自己编译](#方法-c自己编译) |
@@ -84,7 +84,7 @@ limitations under the License.
 
 ### 方法 A：网页烧录器（最简单）
 
-适用于 **SenseCAP Watcher、SenseCAP Indicator、reTerminal E1001 和 reTerminal E1002**。全程在浏览器里完成。
+适用于 **SenseCAP Watcher、SenseCAP Indicator、reTerminal E1001、reTerminal E1002 和 reTerminal Sticky**。全程在浏览器里完成。
 
 > **SenseCAP Watcher 用户请先看这里。** Watcher 里有一小块每台设备都不一样的出厂数据，Muse 会把它覆盖掉。以后要换回 Seeed 的固件就得用到它。请先用[方法 C 的工具备份它](#备份-watcher-的出厂数据)；如果你不打算换回去，可以跳过。
 
@@ -326,11 +326,14 @@ tools/muse/paced_esptool.py --chip esp32s3 -p /dev/cu.usbmodem5A7A0185113 write-
 
 ## 给开发者
 
+XIAO 1.47 英寸触摸屏也已获得上游支持。Sticky 使用 Muse 的 FreeInk 电子纸界面，带触摸设置和键盘；头像每秒刷新一次，图片以四级灰度显示。
+
 | | |
 |---|---|
 | [**ESP32 Device SDK**](esp32) | 固件本身：编译、烧录、二次开发、添加新板卡、给 Muse 增加新命令。包括其他品牌在内的所有板卡见 [`esp32/devices/`](esp32/devices/README.md)。中文说明见 [`esp32/README.zh-CN.md`](esp32/README.zh-CN.md)。 |
 | [**Linux Device SDK**](linux) | 把树莓派或 Linux 电脑变成 Muse gadget。 |
 | [**Web flasher**](web-flasher) | 方法 A 用到的浏览器安装器。 |
+| [**Muse Gadgets Test**](android/musegadgetstest)（[iPhone](ios/musegadgetstest)） | 通过 Wi-Fi 把手机摄像头或视频片段传到支持的 ESP32 屏幕，由板子解码 H.264 或 VP8；466 像素圆屏可达 30 fps。使用方式见 [`protocols/VIDEO.md`](protocols/VIDEO.md)。 |
 
 AI 编程助手从 [`AGENTS.md`](AGENTS.md) 读起（Claude Code 通过 [`CLAUDE.md`](CLAUDE.md) 读取它）：里面有 Seeed 设备总表、怎么在这些设备上做应用和 Demo，以及怎么贡献代码。每个目录都有一个入门用的 `README.md`，以及给 [Muse Code](https://developer.meta.com/ai/lp/muse-code/) 这类编程助手看的 `AGENTS.md`。电池功耗测量见 [`esp32/docs/power/`](esp32/docs/power/README.md)。
 
@@ -349,7 +352,16 @@ Muse Gadgets 采用 Apache License 2.0 许可，见 [`LICENSE`](LICENSE)。以�
 | [`esp32/components/muse/boards/ostb_echoear_display_init.h`](esp32/components/muse/boards/ostb_echoear_display_init.h) | [78/xiaozhi-esp32 ESP-VoCat 屏幕初始化序列](https://github.com/78/xiaozhi-esp32/blob/0d576d3d4c049c6f55eaf879725dc23e516511b4/main/boards/espressif/esp-vocat/esp_vocat.cc) | MIT，保留在文件头里 |
 | [`esp32/main/pixel_font.c`](esp32/main/pixel_font.c) | Adafruit GFX `glcdfont.c` | BSD-2-Clause，见文件头 |
 | [`esp32/main/epd_ssd1677.c`](esp32/main/epd_ssd1677.c) | Seeed-reTerminal-E10xx-Firmware 的 SSD1677 刷新序列 | MIT，保留在文件头里 |
+| [`esp32/components/muse/eink/fonts/montserrat.ttf`](esp32/components/muse/eink/fonts) | LVGL v9.5.0 使用的 Montserrat Medium | SIL Open Font License 1.1 |
+| [`esp32/components/muse/eink/fonts/unscii.ttf`](esp32/components/muse/eink/fonts) | unscii-8 | 公有领域 |
+| [`esp32/components/muse/eink/fonts/symbols.ttf`](esp32/components/muse/eink/fonts) | LVGL v9.5.0 使用的 Font Awesome 5 Free | SIL Open Font License 1.1（图标为 CC BY 4.0） |
+| [`esp32/components/tinyh264/src`](esp32/components/tinyh264) | 经 [udevbe/tinyh264](https://github.com/udevbe/tinyh264) 引入的 Android Open Source Project H.264 解码器 | Apache-2.0，保留 AOSP 版权，见 [`LICENSE`](esp32/components/tinyh264/LICENSE) |
+| [`esp32/components/libvpx_vp8/src`](esp32/components/libvpx_vp8) | 精简的 [libvpx](https://chromium.googlesource.com/webm/libvpx) v1.16.0 VP8 解码器 | BSD-3-Clause，保留 WebM Project 作者版权，见 [`LICENSE`](esp32/components/libvpx_vp8/LICENSE)，Google 专利授权见 [`PATENTS`](esp32/components/libvpx_vp8/PATENTS) |
 
 编译时下载的依赖遵循各自的许可证：ESP-IDF 组件（下载到 `esp32/managed_components/`），以及模拟器用到的 LVGL 和 SDL（列在 [`esp32/simulator/THIRD_PARTY.md`](esp32/simulator/THIRD_PARTY.md)）。
 
 Apache 许可证不覆盖 [Jollybot 头像](esp32/avatar)。
+
+Muse Gadgets Test 的示例视频由应用在播放时下载 Blender Foundation 开放电影（CC BY 3.0）的几秒片段，并显示署名。
+
+Muse Gadgets Test 可在手机端使用 x264（GPL-2.0）；它的代码由构建时获取。包含它的 APK 或 iPhone 应用适用 GPL，详见 [Android 说明](android/musegadgetstest/README.md)和 [iPhone 说明](ios/musegadgetstest/README.md)。

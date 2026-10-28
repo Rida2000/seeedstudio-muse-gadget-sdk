@@ -43,6 +43,7 @@ This file is the map. The details live next to the code:
 | `esp32/tools/` | `board.sh` (status-light and status-screen boards), `muse/board.sh` (UI boards), `muse/monitor.py`, `muse/chat.py`, `muse/snap.py`, `muse/avatar.py`, `image_for_display.py` |
 | `esp32/tests/` | Host tests: they compile firmware code against fakes, no board needed |
 | `esp32/simulator/` | The UI on the desktop, without a board |
+| `android/musegadgetstest/`, `ios/musegadgetstest/`, `protocols/VIDEO.md` | Phone camera streaming to supported ESP32 screens |
 | `web-flasher/` | The browser installer; `boards.json` lists its boards |
 | `linux/`, `skills/` | The Linux SDK, and device skills for Muse |
 | `README.md`, `README.zh-CN.md` | The beginner's guide to Seeed devices, in English and Chinese |
@@ -57,7 +58,7 @@ This file is the map. The details live next to the code:
 | reTerminal Sticky | `tools/board.sh reterminal-sticky …` (Link only: `reterminal-sticky-link`) | `components/muse/boards/board_reterminal_sticky.c`, `main/epd_ssd1677.c` | CH343 `1a86:55d3` | Upstream, experimental |
 | reSpeaker Lite with XIAO ESP32-S3 | `tools/board.sh seeed-respeaker-lite …` | `main/voice_board_respeaker_lite.c` | `303a:1001` on the XIAO | Upstream, experimental |
 | XIAO AMOLED Display (1.75", 2.05", 2.16") | `tools/muse/board.sh … xiao-amoled-175` / `-205` / `-216` | `components/muse/boards/board_seeed_xiao_amoled.c` | `303a:1001` | This repo, experimental, EVT hardware |
-| XIAO ESP32-S3 1.47 Touch Display | `tools/muse/board.sh … xiao147` | `components/muse/boards/board_seeed_xiao_s3_147.c` | `303a:1001` | This repo; upstream [PR #255](https://github.com/facebookincubator/muse-gadget-sdk/pull/255) |
+| XIAO ESP32-S3 1.47 Touch Display | `tools/muse/board.sh … xiao147` | `components/muse/boards/board_seeed_xiao_s3_147.c` | `303a:1001` | Upstream ([PR #255](https://github.com/facebookincubator/muse-gadget-sdk/pull/255)) |
 
 "Upstream" means the official Muse Gadget SDK carries the board too. The
 helper's `…` is `build` or `flash` (`tools/muse/board.sh build xiao147`,
@@ -96,8 +97,8 @@ with `link.invoke`. Most apps and demos are one of these:
 |---|---|---|
 | Muse to read a sensor | A reading in `sensors.read`, refreshed by a background task | `main/sensecap_sensors.c`, `main/reterminal_sht4x.c`, [Adding a command](esp32/AGENTS.md#adding-a-command) |
 | Muse to switch, move or trigger something | A new command, e.g. `relay.set`, gated by a Kconfig option | [Adding a command](esp32/AGENTS.md#adding-a-command) |
-| Muse to show something | `display.draw_url` (images, already there), or a new command for the screen | `main/noise_control.cpp`, `tools/image_for_display.py` |
-| A different look or behaviour on screen | Changes in `components/muse/` (UI, settings) or a new avatar | `muse_ui.c`, `muse_settings_ui.c`, [Update my avatar](esp32/AGENTS.md#update-my-avatar), `esp32/simulator/` |
+| Muse to show something | `display.draw_url` (an image URL) or `display.draw_file` (an image on the VM), or a new command for the screen | `main/noise_control.cpp`, `tools/image_for_display.py` |
+| A different look or behaviour on screen | Changes in `components/muse/` (UI, settings) or a new avatar | `muse_ui.c`, `muse_settings_ui.c`, `eink/` for FreeInk boards, [Update my avatar](esp32/AGENTS.md#update-my-avatar), `esp32/simulator/` |
 | Muse to control devices already on the network | A skill: Markdown, no firmware change | [`skills/README.md`](skills/README.md) |
 | The same on a Raspberry Pi | The Linux SDK | [`linux/AGENTS.md`](linux/AGENTS.md) |
 
@@ -201,7 +202,9 @@ Before you hand work back:
    the app-size line, as [Verify](esp32/devices/AGENTS.md#8-verify) describes.
 2. Run the host tests from `esp32/`. `tools/muse/board.sh` clears
    `managed_components/`, so run one `idf.py build` first (the default C5
-   build is enough), then `python3 -m unittest discover -s tests -p 'test_*.py'`.
+   build is enough), then `python3 -m unittest discover -s tests -p 'test_*.py'`. E-ink navigation
+   tests use the pinned FreeInk checkout through `FREEINK_SOURCE_DIR` or
+   `managed_components/freeink-sdk` from a Sticky configure.
 3. On hardware, capture the boot log and try what you changed. Without the
    board, say the change was built but not run.
 4. Report what you checked, on which board, and what's left unchecked.

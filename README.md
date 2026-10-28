@@ -62,7 +62,7 @@ beginning, with no programming experience needed.
 | [SenseCAP Indicator](https://www.seeedstudio.com/SenseCAP-Indicator-D1-p-5643.html) | Status on its 4" screen, pictures from Muse. The D1S and D1Pro report CO2, tVOC, temperature and humidity to Muse. | [Web flasher](#option-a-the-web-flasher-easiest) |
 | [reTerminal E1001](https://www.seeedstudio.com/reTerminal-E1001-p-6534.html) | Status on a 7.5" black-and-white e-paper, black-and-white pictures from Muse, temperature and humidity. | [Web flasher](#option-a-the-web-flasher-easiest) |
 | [reTerminal E1002](https://www.seeedstudio.com/reTerminal-E1002-p-6533.html) | The same on a 7.3" six-colour e-paper, with colour pictures. | [Web flasher](#option-a-the-web-flasher-easiest) |
-| [reTerminal Sticky](https://www.seeedstudio.com/reTerminal-Sticky-p-6861.html) *(experimental)* | Muse on a 3.97" e-paper touch screen. Hold the AI button to send a voice note, read the reply on screen (Chinese and Japanese too). Grayscale pictures, temperature, humidity, battery. No speaker. | [Build it](#option-c-build-it-yourself) |
+| [reTerminal Sticky](https://www.seeedstudio.com/reTerminal-Sticky-p-6861.html) *(experimental)* | Muse on a 3.97" e-paper touch screen. Hold the AI button to send a voice note, read the reply on screen (Chinese and Japanese too). Grayscale pictures, temperature, humidity, battery. No speaker. | [Web flasher](#option-a-the-web-flasher-easiest) |
 | [reSpeaker Lite with XIAO ESP32-S3](https://wiki.seeedstudio.com/xiao_respeaker/) *(experimental)* | Hold the XIAO's BOOT button to talk. Replies appear in the Muse app. | [Build it](#option-c-build-it-yourself) |
 | [XIAO 1.47" IPS Touch Display (ESP32-S3)](https://www.seeedstudio.com/1-47-Inch-Touch-Display-Powered-by-XIAO-ESP32-S3-Plus-p-6996.html) | Animated face on a 1.47" touch screen. Hold USR1 to talk, read the reply on screen. Pictures from Muse. No speaker. | [Build it](#option-c-build-it-yourself) |
 | XIAO AMOLED Display, 1.75" round, 2.05" or 2.16" square screen *(experimental)* | Animated face on an AMOLED touch screen. Hold ENTER to talk, read the reply on screen. Pictures from Muse, battery. | [Build it](#option-c-build-it-yourself) |
@@ -104,8 +104,8 @@ Pick the option the [table above](#supported-devices) gives for your device.
 
 ### Option A: the web flasher (easiest)
 
-For the **SenseCAP Watcher, SenseCAP Indicator, reTerminal E1001 and
-reTerminal E1002**. Everything happens in your browser.
+For the **SenseCAP Watcher, SenseCAP Indicator, reTerminal E1001,
+reTerminal E1002 and reTerminal Sticky**. Everything happens in your browser.
 
 > **SenseCAP Watcher owners, read this first.** The Watcher keeps a small block
 > of factory data that's unique to each device, and Muse writes over it. You
@@ -428,11 +428,16 @@ settings.
 
 ## For developers
 
+The XIAO 1.47 Touch Display is also supported upstream. Sticky uses Muse's
+FreeInk e-paper UI, with touch settings and a keyboard. Its avatar refreshes
+once a second; images use four grays.
+
 | | |
 |---|---|
 | [**ESP32 Device SDK**](esp32) | The firmware: build, flash and extend it, add a board, give Muse new commands. Every board, including other brands, is in [`esp32/devices/`](esp32/devices/README.md). |
 | [**Linux Device SDK**](linux) | Turn a Raspberry Pi or Linux box into a Muse gadget. |
 | [**Web flasher**](web-flasher) | The browser installer used in Option A. |
+| [**Muse Gadgets Test**](android/musegadgetstest) ([iPhone](ios/musegadgetstest)) | Stream your phone's camera, or a clip, to an ESP32 gadget's screen over Wi-Fi: H.264 or VP8 decoded on the board, 30 fps on the round 466 px boards. [`protocols/VIDEO.md`](protocols/VIDEO.md) explains how. |
 
 Coding agents start at [`AGENTS.md`](AGENTS.md), which Claude Code reads
 through [`CLAUDE.md`](CLAUDE.md): the Seeed devices, how to build apps and
@@ -459,10 +464,24 @@ upstream licenses:
 | [`esp32/components/minimp3/include/minimp3.h`](esp32/components/minimp3) | [lieff/minimp3](https://github.com/lieff/minimp3) | CC0-1.0, see [`LICENSE`](esp32/components/minimp3/LICENSE) |
 | [`esp32/components/muse/boards/ostb_echoear_display_init.h`](esp32/components/muse/boards/ostb_echoear_display_init.h) | [78/xiaozhi-esp32 ESP-VoCat panel sequence](https://github.com/78/xiaozhi-esp32/blob/0d576d3d4c049c6f55eaf879725dc23e516511b4/main/boards/espressif/esp-vocat/esp_vocat.cc) | MIT, retained in the file header |
 | [`esp32/main/pixel_font.c`](esp32/main/pixel_font.c) | Adafruit GFX `glcdfont.c` | BSD-2-Clause, in the file header |
-| [`esp32/main/epd_ssd1677.c`](esp32/main/epd_ssd1677.c) | Seeed-reTerminal-E10xx-Firmware SSD1677 refresh sequence | MIT, retained in the file header |
+| [`esp32/components/muse/eink/fonts/montserrat.ttf`](esp32/components/muse/eink/fonts) | Montserrat Medium, via LVGL v9.5.0 | SIL Open Font License 1.1 |
+| [`esp32/components/muse/eink/fonts/unscii.ttf`](esp32/components/muse/eink/fonts) | unscii-8 | Public domain |
+| [`esp32/components/muse/eink/fonts/symbols.ttf`](esp32/components/muse/eink/fonts) | Font Awesome 5 Free, via LVGL v9.5.0 | SIL Open Font License 1.1 (icons CC BY 4.0) |
+| [`esp32/main/epd_ssd1677.c`](esp32/main/epd_ssd1677.c) | Seeed-reTerminal-E10xx-Firmware's SSD1677 refresh sequence | MIT, retained in the file header |
+| [`esp32/components/tinyh264/src`](esp32/components/tinyh264) | the Android Open Source Project's H.264 decoder, via [udevbe/tinyh264](https://github.com/udevbe/tinyh264) | Apache-2.0, AOSP's copyright, see [`LICENSE`](esp32/components/tinyh264/LICENSE) |
+| [`esp32/components/libvpx_vp8/src`](esp32/components/libvpx_vp8) | [libvpx](https://chromium.googlesource.com/webm/libvpx) v1.16.0's VP8 decoder, trimmed | BSD-3-Clause, the WebM Project authors' copyright, see [`LICENSE`](esp32/components/libvpx_vp8/LICENSE), with Google's patent grant in [`PATENTS`](esp32/components/libvpx_vp8/PATENTS) |
 
 Dependencies fetched at build time are under their own licenses: ESP-IDF
 components (into `esp32/managed_components/`), and the simulator's LVGL and
 SDL (listed in [`esp32/simulator/THIRD_PARTY.md`](esp32/simulator/THIRD_PARTY.md)).
 
 The Apache License does not cover the [Jollybot avatar](esp32/avatar).
+
+Muse Gadgets Test's sample clips aren't in this repository: the app fetches a few
+seconds of the Blender Foundation's open movies (CC BY 3.0) when one is
+played, and shows their credits.
+
+Muse Gadgets Test can use x264 (GPL-2.0) on the phone; this repository carries none
+of its code. An APK or iPhone app you build with it is under the GPL
+([`android/musegadgetstest/README.md`](android/musegadgetstest/README.md),
+[`ios/musegadgetstest/README.md`](ios/musegadgetstest/README.md)).

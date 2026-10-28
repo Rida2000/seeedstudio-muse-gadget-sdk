@@ -84,6 +84,7 @@ are documented separately; this is not a generic ESP-VoCat profile.
 | Push-to-talk | — | — | — | — | — | — | — | — | AI voice note checked; screen mic unverified | ✅ | XIAO BOOT | ✅ | ✅ | ✅ | ✅ | ✅ | Text replies | Text replies | ✅ | ✅ | ✅ | Text replies (experimental) | ✅ | ✅ | USR1 | ENTER | ENTER | ENTER | ✅ | ✅ | ✅ | — | With an added I2S mic | ✅ | — | — | Text replies (experimental) | Screen mic |
 | Speaker and mic | — | — | — | — | — | — | — | — | PDM voice note checked, no speaker | ✅ | 16 kHz I2S | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Buzzer and mic | ES8311 (experimental) | ✅ | ✅ | PDM mic, no speaker | ES8311 / ES7243E | ES8311 / ES7243E | ES8311 / ES7243E | ✅ | ✅ | ES8311 | — | Speaker (NS4168), no mic | ES8311, ES7210 | — | — | ES8311 (experimental) | ES8311 / ES7210 |
 | Air sensors | — | — | — | — | D1S, D1Pro | — | Temperature, humidity | Temperature, humidity | Temperature, humidity | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
+| Video from a phone (`MUSE_VIDEO=1`) | — | — | — | — | — | — | — | — | — | — | — | ✅ | Built, not run | — | — | — | — | — | — | — | — | — | — | Built, not run | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
 | Touch | — | — | — | — | — | — | — | — | GT911 (checked on one unit) | — | — | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | — | — | — | ✅ | ✅ | ✅ | CST820 | CST820B | CST9220 | ✅ | ✅ | ✅ | — | ✅ | — | ✅ | ✅ | — | ✅ |
 | Battery status | — | — | — | — | — | — | — | — | BQ27220 %/mV and charging checked | — | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Voltage only | — | — | ✅ | — | Voltage and percent | Voltage and percent | Voltage and percent | ✅ | ✅ | Voltage only | — | — | Percent only | — | Voltage only (unverified) | No charging state | Unverified |
 | Over-the-air updates | Off | Off | Off | Off | Off | Off | Off | Off | On (checked on one unit) | Off | Off | On | On | On | On | On | On | On | On | On | On | Off | On | On | Off | On | On | On | On | On | On | Off | On | On | On | On | Off | On |
@@ -150,27 +151,34 @@ the temperature is corrected by `CONFIG_HOMEHUB_RETERMINAL_SHT4X_TEMP_OFFSET`
 
 The experimental reTerminal Sticky Muse profile follows Seeed's `factory_fw`
 source: SSD1677 panel, GPIO45/46 power latch, GT911 touch (I2C0), PDM mic,
-BQ27220 battery gauge and SD card on the panel's SPI2 bus. It renders a still
-480×800 UI and four-level grayscale images; the avatar updates on state changes
-rather than animating continuously on slow e-paper. The AI button starts a
-voice note and confirms pairing; GT911 touch opens settings. Up/Down only
-wake the screen. There is no speaker: replies are
-text on screen. The profile includes Muse's Chinese/Japanese CJK caption font
-for UTF-8 replies. The microSD slot is off by default (`CONFIG_MUSE_STICKY_SD`):
+BQ27220 battery gauge and SD card on the panel's SPI2 bus. Its UI is Muse's
+e-ink layer (`components/muse/eink/`, `CONFIG_MUSE_UI_FREEINK`) rather than
+LVGL: [FreeInk](https://github.com/Free-Ink/freeink-sdk) drives the panel from
+its `sticky` profile, and the layer draws the face, Settings and FreeInk's
+keyboard in black on white. Muse animates once a second on fast partial
+refreshes, with a clean refresh every 30 frames and on page changes, images and
+sleep; images show in four grays. Asleep, the panel keeps its last picture at
+no power. Progress is a bar along the bottom edge, as on Muse's square panels.
+The AI button starts a voice note and confirms pairing; touch swipes to
+Settings and confirms pairing too. Up/Down only wake the screen. There is no
+speaker: replies are text on screen. Text uses the LVGL UI's fonts, drawn from
+their TTFs, and Muse's Chinese/Japanese CJK caption font. The
+microSD slot is off by default (`CONFIG_MUSE_STICKY_SD`):
 turned on, an inserted card is mounted at `/sdcard` without formatting, though
 nothing reads it yet. The SHT40 on
 I2C1 answers `sensors.read` with an uncalibrated 0 °C temperature offset.
 The profile uses 16 MB of the physical 32 MB flash. Muse's battery sleep and
 Wi-Fi nap are enabled, but the touch and SD rails remain powered: standby
 behaviour is not factory-equivalent. Settings Power off releases the power
-latch only when USB is disconnected. On one unit, portrait UI and black/white
-polarity, left-swipe touch, accurate Sleep row selection and back navigation,
-stable idle display, SHT40 readings, battery percentage/voltage, sleep/wake,
-voice-note delivery and Chinese replies were checked; saving a Sleep setting
-no longer reboots the device. The contributor additionally confirms FAT SD
-mount/removal/reinsertion, charging-state indication, battery-only Power off
-and restart, Muse OTA and measurement of standby current. The numeric current
-value and measurement conditions will be recorded when supplied.
+latch only when USB is disconnected. On one unit, the e-ink UI was checked
+for pairing, voice turns and replies, the mic during replies, swiping and
+navigating Settings, the keyboard, sleep and wake, and fast refreshes. With the
+earlier LVGL UI, SHT40 readings, battery percentage/voltage, voice-note
+delivery and Chinese replies were checked; the contributor additionally
+confirms FAT SD mount/removal/reinsertion, charging-state indication,
+battery-only Power off and restart, Muse OTA and measurement of standby
+current. The numeric current value and measurement conditions will be
+recorded when supplied.
 Back up factory firmware and any device-specific data before flashing.
 
 The optional `reterminal-sticky-link` profile uses the same SSD1677 and SHT40
@@ -262,7 +270,10 @@ python -m esptool --chip esp32s3 -p PORT write-flash 0 sticks3.bin
 The M5Stack StopWatch has the same CO5300 round AMOLED as the Waveshare S3
 1.75C, with a CST820 touch controller and the StickS3's ES8311 audio. With USB
 at the bottom, **blue top-right is PTT/pairing confirmation**, **yellow
-top-left toggles speaker on/off**, and **red bottom-left is POWER**. A short
+top-left toggles speaker on/off**, and **red bottom-left is POWER**. Builds with
+live calls (`CONFIG_MUSE_REALTIME_VOICE`) swap the two rim keys and their
+icons: yellow talks (and confirms pairing), and blue toggles the speaker and,
+during a call, hangs up. A short
 POWER press sleeps/wakes the screen; a 1.5 s hold while awake shows goodbye
 and shuts down the M5PM1 (click red to power back on). A waking press is
 consumed, not interpreted as another action. Hardware double-click power-off
@@ -296,9 +307,8 @@ The Seeed XIAO ESP32-S3 1.47 Touch Display has a 172×320 JD9853A LCD, AXS5106L
 touch and a PDM mic. **USR1 is push-to-talk and pairing confirmation, USR2
 sleeps and wakes the screen.** It has a microphone and no speaker, so replies
 are read on screen. The IMU, MicroSD slot and battery input aren't used, and
-OTA is off. Pairing, push-to-talk, touch settings, screen sleep and power off were
-checked on one unit. Its [setup guide](seeed-xiao-s3-147.md) has the pins and
-wiring.
+OTA is off. Pairing, push-to-talk, touch settings, screen sleep and power off
+were checked on one unit. Its [setup guide](seeed-xiao-s3-147.md) has the pins.
 
 The Seeed XIAO AMOLED Display carries a XIAO ESP32-S3 Plus and takes one of
 several CO5300 AMOLED modules on the same FPC, all driven by one board file:
@@ -543,6 +553,15 @@ edge (`no_ring`): the panel is square.
   Muse builds then answer ESP-Iris and aren't signed (a signed app can't hand
   over to Vibe Mode, whose image it checks against our key), so later
   installs need no buttons.
+- **Video from a phone:** `MUSE_VIDEO=1 tools/muse/board.sh build|flash
+  mosaico` builds in `build-muse-esp-mosaico-video/` with
+  `devices/sdkconfig.muse-video`: the phone camera or a clip over Wi-Fi
+  (`../protocols/VIDEO.md`), up to 480 px shown one to one, as two bands
+  decoded at once, one per core. Join Wi-Fi from the board's settings, or for
+  a bench set `CONFIG_HOMEHUB_WIFI_SSID` and `CONFIG_HOMEHUB_WIFI_PASSWORD` in
+  that directory's `sdkconfig`. Run on a v1.2 board: it joins Wi-Fi beside BLE
+  setup, announces `_musevideo._tcp`, and plays 480 px two-band H.264 at
+  29-30 fps.
 
 ## Waveshare ESP32-S3-Touch-AMOLED-2.16
 
@@ -632,7 +651,7 @@ board's overlays, in order:
 | Waveshare S3 1.75C | `esp32s3` | [`devices/sdkconfig.muse`](sdkconfig.muse), [`devices/sdkconfig.muse-waveshare-s3-175c`](sdkconfig.muse-waveshare-s3-175c) | by hand |
 | Waveshare S3 1.75 | `esp32s3` | [`devices/sdkconfig.muse`](sdkconfig.muse), [`devices/sdkconfig.muse-waveshare-s3-175`](sdkconfig.muse-waveshare-s3-175) | by hand |
 | Waveshare S3 2.16 | `esp32s3` | [`devices/sdkconfig.muse`](sdkconfig.muse), [`devices/sdkconfig.muse-waveshare-s3-216`](sdkconfig.muse-waveshare-s3-216) | `tools/muse/board.sh build s3-216` |
-| Espressif ESP-Mosaico (experimental) | `esp32s31` | [`devices/sdkconfig.muse`](sdkconfig.muse), [`devices/sdkconfig.muse-esp-mosaico`](sdkconfig.muse-esp-mosaico), [`devices/sdkconfig.muse-esp-mosaico-iris`](sdkconfig.muse-esp-mosaico-iris) | `tools/muse/board.sh build mosaico` |
+| Espressif ESP-Mosaico (experimental) | `esp32s31` | [`devices/sdkconfig.muse`](sdkconfig.muse), [`devices/sdkconfig.muse-esp-mosaico`](sdkconfig.muse-esp-mosaico), [`devices/sdkconfig.muse-esp-mosaico-iris`](sdkconfig.muse-esp-mosaico-iris); video adds [`devices/sdkconfig.muse-video`](sdkconfig.muse-video) | `tools/muse/board.sh build mosaico`; video: `MUSE_VIDEO=1 tools/muse/board.sh build mosaico` |
 | OSTB EchoEar-2ST (experimental) | `esp32s3` | [`devices/sdkconfig.muse`](sdkconfig.muse), [`devices/sdkconfig.muse-ostb-echoear-2st`](sdkconfig.muse-ostb-echoear-2st) | `tools/muse/board.sh build echoear` |
 | Espressif ESP32-S3-BOX-3 | `esp32s3` | [`devices/sdkconfig.muse`](sdkconfig.muse), [`devices/sdkconfig.muse-espressif-box-3`](sdkconfig.muse-espressif-box-3) | `tools/muse/board.sh build box3` |
 | AIPI Lite | `esp32s3` | [`devices/sdkconfig.muse`](sdkconfig.muse), [`devices/sdkconfig.muse-aipi`](sdkconfig.muse-aipi) | by hand |

@@ -149,7 +149,7 @@ idf.py -p /dev/cu.usbmodem1101 flash monitor
 | Waveshare ESP32-S3-1.54inch-ePaper V2 | 1.54 英寸电子纸显示状态，黑白 | `tools/board.sh waveshare-s3-epaper-154 build` |
 | Seeed reTerminal E1001 | 7.5 英寸电子纸显示状态，黑白图片 | `tools/board.sh reterminal-e1001 build` |
 | Seeed reTerminal E1002 | 7.3 英寸电子纸显示状态，六色图片 | `tools/board.sh reterminal-e1002 build` |
-| Seeed reTerminal Sticky（实验性） | 3.97 英寸竖屏电子纸界面、触摸、PDM 语音输入、电池、SD 卡和 SHT40 | `tools/board.sh reterminal-sticky build` |
+| Seeed reTerminal Sticky（实验性） | 基于 FreeInk 的 3.97 英寸竖屏电子纸界面、触摸、PDM 语音输入、电池、SD 卡和 SHT40 | `tools/board.sh reterminal-sticky build` |
 | Seeed reTerminal Sticky Link 状态屏（实验性） | 电子纸状态画面和 SHT40，无完整 Muse 界面 | `tools/board.sh reterminal-sticky-link build` |
 | Home Assistant Voice Preview Edition | LED 灯环显示状态，按住说话，音量旋钮 | `tools/board.sh home-assistant-voice build` |
 | Seeed reSpeaker Lite with XIAO ESP32-S3 (experimental) | 单颗 RGB LED，BOOT 按住说话；需要 16 kHz 的 XMOS I2S | [设置](devices/seeed-respeaker-lite.md) |
@@ -165,7 +165,7 @@ idf.py -p /dev/cu.usbmodem1101 flash monitor
 | M5Stack Cardputer ADV (experimental) | 界面、GO/Space 按住说话并显示文字回复，Esc/Enter/方向键控制菜单 | `tools/muse/board.sh build cardputer-adv` |
 | M5Stack StickS3 | 界面、按住说话、双键菜单、图片 | 见 [`AGENTS.md`](AGENTS.md#boards-with-the-full-ui-by-hand) |
 | M5Stack StopWatch | 界面、按住说话、设置、图片 | 见 [`AGENTS.md`](AGENTS.md#boards-with-the-full-ui-by-hand) |
-| Seeed XIAO ESP32-S3 1.47 英寸触摸屏 | 界面、USR1 按住说话、触摸、设置、图片；PDM 麦克风，无喇叭 | `tools/muse/board.sh build xiao147` |
+| [Seeed XIAO ESP32-S3 1.47 英寸触摸屏](devices/seeed-xiao-s3-147.zh-CN.md) | 界面、USR1 按住说话、触摸、设置、图片；PDM 麦克风，无喇叭 | `tools/muse/board.sh build xiao147` |
 | Seeed XIAO AMOLED Display，2.05" 屏（实验性） | 界面、ENTER 按住说话、触摸、设置、图片 | `tools/muse/board.sh build xiao-amoled-205` |
 | Seeed XIAO AMOLED Display，1.75" 圆屏（实验性） | 界面、ENTER 按住说话、触摸、设置、图片 | `tools/muse/board.sh build xiao-amoled-175` |
 | Seeed XIAO AMOLED Display，2.16" 方屏（实验性） | 界面、ENTER 按住说话、触摸、设置、图片 | `tools/muse/board.sh build xiao-amoled-216` |
@@ -197,7 +197,9 @@ idf.py -p /dev/cu.usbmodem1101 flash monitor
 
 要把自己的头像放到板子屏幕上，插上板子后运行 `python3 tools/muse/avatar.py`。它会让你的 Muse 把头像重画成这块板的像素头像，检查结果，然后编译并烧录。你的头像不会放进 git。原理，以及需要手动步骤的板子，见 [`tools/muse/AVATAR_RECIPE.md`](tools/muse/AVATAR_RECIPE.md)。
 
-要给 Muse 一条它自己的命令，比如读传感器或开关继电器，在 `link.register` 里登记，并在 `main/app.c` 里处理。[`AGENTS.md`](AGENTS.md#adding-a-command) 有逐步说明。
+要给 Muse 一条它自己的命令，比如读传感器或开关继电器，在 `link.register` 里登记，并在 `main/app.c` 里处理。[`AGENTS.md`](AGENTS.md#adding-a-command) 有逐步说明。反过来，你的程序也能通过 Link 连接读取 Muse 的聊天记录，或读写用户在 VM 上的文件；所有板型都支持。请求路径和限制见 [`AGENTS.md`](AGENTS.md#requests-to-muses-vm-from-your-code)。
+
+要把手机摄像头画面显示在支持的板卡上，用 `MUSE_VIDEO=1 tools/muse/board.sh build <board>` 编译，再在同一 Wi-Fi 下的手机上运行 Muse Gadgets Test（[Android](../android/musegadgetstest)、[iPhone](../ios/musegadgetstest)），并在板卡上打开 Phone camera。手机编码 H.264 或 VP8，板卡解码显示，466 像素圆屏可达 30 fps。协议见 [`protocols/VIDEO.md`](../protocols/VIDEO.md)，支持的板型见 [`AGENTS.md`](AGENTS.md#video-from-a-phone)。
 
 没有板子也能改界面，用 [`simulator/`](simulator/README.md) 的桌面预览。它在一个 412 x 412 的 SenseCAP Watcher 窗口里跑正式版界面和头像渲染，支持鼠标和键盘，也可以在没有显示器服务的情况下按脚本生成截图。
 
@@ -205,6 +207,15 @@ Muse 的回复是文字：按住说话会把你的语音发出去，Muse 把它�
 
 - **更短的回答。** 在消息里直接要求，比如「用一句话回答。」
 - **说出来的回答。** 把每条回复的文字发给你选的文字转语音服务，再播放它返回的音频。在有 PSRAM 的板上，接入点是 [`components/muse/muse_chat_session.cpp`](components/muse/muse_chat_session.cpp) 里的 `start_tts`：那里已经有回复文字，MP3 解码、扬声器和音量也都接好了。
+
+要与 Muse 实时通话（实验性），在 `idf.py menuconfig` 的 Muse 菜单打开 **Live voice calls with Muse**（`CONFIG_MUSE_REALTIME_VOICE`）。完整界面且带 PSRAM 的板卡，以及 Voice PE 和 reSpeaker Lite 可启用；默认关闭。使用方式如下：
+
+- **StopWatch：** 按住黄色键说话或打断播放，松开后 Muse 回答并保持通话。录音会保留最多 120 毫秒的尾音。轻按蓝色键挂断。启用实时通话后，黄色键负责说话，蓝色键负责扬声器（通话外静音），与普通固件的两键作用相反；红色键仍负责电源。在 **Settings > Sound > Voice notes** 可切回语音留言和文字回复。打断播放后，已经交给后台的任务仍可稍后报告结果。
+- **其他板卡：** 轻按说话键开始通话，再按一次挂断；长按仍发送语音留言。Muse 播放时麦克风关闭，Voice PE 音频芯片报告已启用回声消除时除外。
+- Muse 结束通话、安静超过 45 秒（Muse 仍在处理任务的时间除外），或通话达到 15 分钟时也会挂断。可靠的手动结束方式是按键挂断；Muse 说再见后是否自动挂断取决于服务器支持。连接中断后，设备会在重连时请求结束旧通话；若断电或重启，Muse 通常会在约一分钟后结束。
+- Voice PE 的静音开关会挂断，开启静音后采集到的音频不会发送。
+- 打开 `CONFIG_MUSE_REALTIME_VOICE_GREETING` 可让 Muse 主动问候。
+- Muse VM 需要接受来自设备的语音通话。
 
 还有几件值得知道的事：
 
@@ -222,7 +233,7 @@ Muse 的回复是文字：按住说话会把你的语音发出去，Muse 把它�
 python3 -m unittest discover -s tests -p 'test_*.py'
 ```
 
-先跑一次 `idf.py build`，这样下载下来的组件才会就位。
+先跑一次 `idf.py build`，这样下载下来的组件才会就位。电子纸导航测试还需要固定版本的 FreeInk 源码：将 `FREEINK_SOURCE_DIR` 指向对应检出目录，或先配置 Sticky，使用生成的 `managed_components/freeink-sdk`。CI 会检出同一版本。
 
 有两项加密测试，除非这台电脑上具备它们需要的东西，否则会跳过。安装电脑上的 Mbed TLS 库（macOS 上是 `brew install mbedtls pkgconf`，Debian 或 Ubuntu 上是 `apt-get install libmbedtls-dev pkg-config`），并且从一个已经运行过 ESP-IDF `export.sh` 的终端里跑测试。那条命令会设置 `IDF_PATH`。如果有测试被跳过，输出的最后一行会显示 `skipped=`。
 
@@ -238,5 +249,10 @@ ESP32 设备 SDK 采用 Apache License 2.0，全文见
 - [`components/minimp3/include/minimp3.h`](components/minimp3)，MP3 解码器，许可证是 CC0-1.0。见 [`components/minimp3/LICENSE`](components/minimp3/LICENSE)。
 - [`main/pixel_font.c`](main/pixel_font.c)，Adafruit GFX 字体，许可证是 BSD-2-Clause，文件头里写了。
 - [`components/muse/boards/ostb_echoear_display_init.h`](components/muse/boards/ostb_echoear_display_init.h)，来自 78/xiaozhi-esp32 的 ST77916 面板初始化表，许可证是 MIT，上游声明保留在文件里。
+- [`main/epd_ssd1677.c`](main/epd_ssd1677.c) 是 Sticky Link 状态屏使用的 SSD1677 驱动，基于 Seeed-reTerminal-E10xx-Firmware 的刷新序列，采用 MIT 并保留原版权和许可声明。
+- [`board_seeed_xiao_s3_147.c`](components/muse/boards/board_seeed_xiao_s3_147.c) 中改编自 Seeed-Studio/Seeed_GFX2 的 JD9853A 初始化序列采用 MIT，见 [`Seeed_GFX2.txt`](devices/licenses/Seeed_GFX2.txt)。
+- [`components/muse/eink/fonts/`](components/muse/eink/fonts/) 中的电子纸字体是 Montserrat（SIL OFL 1.1）、unscii（公有领域）和 Font Awesome 5 Free（SIL OFL 1.1）的子集，详见目录中的 README。
+- [`components/tinyh264/src`](components/tinyh264) 是经 udevbe/tinyh264 引入的 Android Open Source Project H.264 解码器，采用 Apache-2.0 并保留 AOSP 版权，见 [`LICENSE`](components/tinyh264/LICENSE)。
+- [`components/libvpx_vp8/src`](components/libvpx_vp8) 是精简的 libvpx v1.16.0 VP8 解码器，采用 BSD-3-Clause 并保留 WebM Project 作者版权和 Google 专利授权，见 [`LICENSE`](components/libvpx_vp8/LICENSE) 和 [`PATENTS`](components/libvpx_vp8/PATENTS)。
 
 构建时拉取的 ESP-IDF 组件（位于 `managed_components/`）使用它们自己的许可证。

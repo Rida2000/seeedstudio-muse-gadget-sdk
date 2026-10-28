@@ -23,6 +23,7 @@
 #include "esp_app_desc.h"
 #include "esp_mac.h"
 #include "esp_timer.h"
+#include "sdkconfig.h"
 
 #include "muse_audio.h"
 #include "muse_battery.h"
@@ -38,6 +39,9 @@
 #include "muse_ui.h"
 #include "muse_voice.h"
 #include "muse_wifi.h"
+#if CONFIG_MUSE_VIDEO
+#include "muse_video.h"
+#endif
 
 /* Keep content in a column that stays inside a round panel (and fits a 368 px one). */
 #define LIST_W 330
@@ -74,6 +78,9 @@ typedef struct {
 
 /* Home values. */
 static lv_obj_t *s_home_wifi, *s_home_hatch, *s_home_ble, *s_home_sound, *s_home_sleep, *s_home_battery, *s_about;
+#if CONFIG_MUSE_VIDEO
+static lv_obj_t *s_home_camera;
+#endif
 
 /* Wi-Fi page. */
 static lv_obj_t *s_wifi_sw, *s_wifi_status, *s_wifi_saved, *s_wifi_scan_btn, *s_wifi_scan_lbl, *s_wifi_list;
@@ -96,6 +103,9 @@ static int64_t s_sdk_token_bad_us;   /* when an invalid SDK token was entered */
 static lv_obj_t *s_ble_sw, *s_ble_status;
 
 /* Sound page. */
+#if CONFIG_MUSE_BOARD_M5STACK_STOPWATCH && CONFIG_MUSE_REALTIME_VOICE
+static lv_obj_t *s_notes_sw;
+#endif
 static lv_obj_t *s_spk_sw, *s_vol_val, *s_vol_sl, *s_gain_val, *s_gain_sl, *s_bright_val, *s_bright_sl, *s_mic_bar, *s_mic_val;
 
 /* Sleep page. */
@@ -321,8 +331,8 @@ static lv_obj_t *switch_row(lv_obj_t *list, const char *text, bool on, lv_event_
     lv_obj_t *c = card(list, false);
     lv_obj_t *t = label(c, narrow_panel() ? &lv_font_montserrat_16 : &lv_font_montserrat_20, COLOR_TEXT, text);
     lv_obj_set_flex_grow(t, 1);
-    lv_label_set_long_mode(t, LV_LABEL_LONG_MODE_DOTS);
     if (narrow_panel()) {
+        lv_label_set_long_mode(t, LV_LABEL_LONG_MODE_DOTS);
         lv_obj_set_height(t, lv_font_get_line_height(&lv_font_montserrat_16));
     }
     lv_obj_t *sw = lv_switch_create(c);
@@ -630,14 +640,26 @@ static void build_text_page(lv_obj_t *tile)
 
     /* The keys out to the screen's edges, and the rest squeezed in above them:
      * the back arrow beside the field, the title over both. */
-    lv_obj_align(s_text_title, LV_ALIGN_TOP_MID, 0, text_y(16));
-    lv_obj_set_width(s_text_title, text_px(180));
-    lv_obj_set_width(s_text_ta, text_px(224));
-    lv_obj_align(s_text_ta, LV_ALIGN_TOP_MID, 0, text_y(44));
-    lv_obj_set_size(back, text_px(48), h);
-    lv_obj_align(back, LV_ALIGN_TOP_MID, -text_px(140), text_y(44));
-    s_text_kp = muse_keypad_create(s_text, s_text_ta, muse_board->round);
     int top = text_y(98);
+    if (narrow_panel()) {
+        /* Portrait panels need a header inside the screen, not the round layout. */
+        lv_obj_set_style_text_font(s_text_title, &lv_font_montserrat_16, 0);
+        single_line(s_text_title, muse_board->width - 16);
+        lv_obj_align(s_text_title, LV_ALIGN_TOP_MID, 0, 8);
+        lv_obj_set_width(s_text_ta, muse_board->width - 60);
+        lv_obj_align(s_text_ta, LV_ALIGN_TOP_RIGHT, -4, 36);
+        lv_obj_set_size(back, 48, h);
+        lv_obj_align(back, LV_ALIGN_TOP_LEFT, 4, 36);
+        top = 92;
+    } else {
+        lv_obj_align(s_text_title, LV_ALIGN_TOP_MID, 0, text_y(16));
+        lv_obj_set_width(s_text_title, text_px(180));
+        lv_obj_set_width(s_text_ta, text_px(224));
+        lv_obj_align(s_text_ta, LV_ALIGN_TOP_MID, 0, text_y(44));
+        lv_obj_set_size(back, text_px(48), h);
+        lv_obj_align(back, LV_ALIGN_TOP_MID, -text_px(140), text_y(44));
+    }
+    s_text_kp = muse_keypad_create(s_text, s_text_ta, muse_board->round);
     lv_obj_set_size(s_text_kp, muse_board->width, muse_board->height - top);
     lv_obj_align(s_text_kp, LV_ALIGN_TOP_MID, 0, top);
     if (muse_board->round) {
@@ -1100,6 +1122,13 @@ static void on_speaker_sw(lv_event_t *e)
     muse_settings_set_speaker_on(lv_obj_has_state(lv_event_get_target(e), LV_STATE_CHECKED));
 }
 
+#if CONFIG_MUSE_BOARD_M5STACK_STOPWATCH && CONFIG_MUSE_REALTIME_VOICE
+static void on_notes_sw(lv_event_t *e)
+{
+    muse_settings_set_voice_notes(lv_obj_has_state(lv_event_get_target(e), LV_STATE_CHECKED));
+}
+#endif
+
 static void on_volume(lv_event_t *e)
 {
     int v = lv_slider_get_value(s_vol_sl);
@@ -1138,6 +1167,11 @@ static void build_sound_page(lv_obj_t *tile)
 {
     lv_obj_t *list;
     s_sound = page(tile, "SOUND", true, &list);
+#if CONFIG_MUSE_BOARD_M5STACK_STOPWATCH && CONFIG_MUSE_REALTIME_VOICE
+    s_notes_sw = switch_row(list, "Voice notes", muse_settings_voice_notes(), on_notes_sw);
+    note(list, "Off: hold yellow to talk live, release to listen; blue ends the call. "
+               "On: hold yellow to send a voice note. Applies to the next call.");
+#endif
     if (muse_board->audio_init) {
         s_spk_sw = switch_row(list, "Speaker", muse_settings_speaker_on(), on_speaker_sw);
         s_vol_sl = slider(list, "Volume", 0, 100, muse_settings_volume(), &s_vol_val, on_volume);
@@ -1175,6 +1209,9 @@ static void build_sound_page(lv_obj_t *tile)
 
 static void tick_sound(void)
 {
+#if CONFIG_MUSE_BOARD_M5STACK_STOPWATCH && CONFIG_MUSE_REALTIME_VOICE
+    lv_obj_set_state(s_notes_sw, LV_STATE_CHECKED, muse_settings_voice_notes());
+#endif
     bool on = muse_settings_speaker_on();   /* also toggled from the face */
     if (s_spk_sw && on != lv_obj_has_state(s_spk_sw, LV_STATE_CHECKED)) {
         lv_obj_set_state(s_spk_sw, LV_STATE_CHECKED, on);
@@ -1389,6 +1426,15 @@ static const page_t SLEEP = { &s_sleep, build_sleep_page };
 static const page_t BATTERY = { &s_battery, build_battery_page };
 static const page_t POWER = { &s_power, build_power_page };
 
+#if CONFIG_MUSE_VIDEO
+/* Phone camera: the video view, which asks the phone for a stream. */
+static void on_camera(lv_event_t *e)
+{
+    (void)e;
+    muse_video_open();
+}
+#endif
+
 static void build_home(lv_obj_t *tile)
 {
     lv_obj_t *list;
@@ -1399,6 +1445,11 @@ static void build_home(lv_obj_t *tile)
     row(list, LV_SYMBOL_VOLUME_MAX, "Sound", &s_home_sound, on_nav, (void *)&SOUND);
     row(list, LV_SYMBOL_EYE_CLOSE, "Sleep", &s_home_sleep, on_nav, (void *)&SLEEP);
     row(list, LV_SYMBOL_BATTERY_FULL, "Battery", &s_home_battery, on_nav, (void *)&BATTERY);
+#if CONFIG_MUSE_VIDEO
+    if (muse_video_supported()) {
+        row(list, LV_SYMBOL_VIDEO, "Phone camera", &s_home_camera, on_camera, NULL);
+    }
+#endif
     if (muse_board->power_off) {
         row(list, LV_SYMBOL_POWER, "Power off", NULL, on_nav, (void *)&POWER);
     }
@@ -1437,6 +1488,11 @@ static void tick_home(void)
         snprintf(buf, sizeof(buf), "%s%d%%", p.charging ? LV_SYMBOL_CHARGE " " : "", p.battery_pct);
     }
     set_text(s_home_battery, buf);
+#if CONFIG_MUSE_VIDEO
+    if (s_home_camera) {
+        set_text(s_home_camera, muse_video_has_client() ? "Ready" : "No phone");
+    }
+#endif
 
     snprintf(buf, sizeof(buf), narrow_panel() ? "Muse %s\n%s" : "Muse %s  -  %s", esp_app_get_description()->version,
              w.state == MUSE_WIFI_CONNECTED ? w.ip : "offline");

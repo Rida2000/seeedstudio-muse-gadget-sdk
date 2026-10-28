@@ -16,11 +16,23 @@ dependencies:
   idf:
     version: ">=5.5"
   espressif/cjson: "~1.7"
+  # Video over Wi-Fi announces itself with it (muse_video_wifi.c).
+  espressif/mdns:
+    version: "^1.8"
+    rules:
+      - if: "$CONFIG{MUSE_VIDEO_MDNS} == \"y\""
   lvgl/lvgl:
     version: "9.5.0"
     public: true
     rules:
       - if: "$CONFIG{MUSE_BOARD_ID} != \"none\""
+      - if: "$CONFIG{MUSE_FREEINK_DEVICE} == \"\""
+  # The device string is always defined, including on non-e-ink builds.
+  freeink-sdk:
+    git: https://github.com/Free-Ink/freeink-sdk.git
+    version: 2c047df7792cedece1191503793f18f5d8f1c695
+    rules:
+      - if: "$CONFIG{MUSE_FREEINK_DEVICE} != \"\""
   espressif/esp_codec_dev:
     version: "~1.5"
     public: true
