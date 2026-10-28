@@ -32,6 +32,7 @@ This file is the map. The details live next to the code:
 | [`linux/AGENTS.md`](linux/AGENTS.md) | The Linux Device SDK (Raspberry Pi and other Linux boxes) |
 | [`esp32/devices/README.md`](esp32/devices/README.md) | Every board's hardware, features and build, and what has been checked on hardware |
 | [`skills/README.md`](skills/README.md) | Markdown skills that teach Muse to use other devices through a gadget |
+| [CodeCraft Hub guide](README.md#share-your-project-on-codecraft-hub) | Sharing a project for one-click firmware deployment; required for the Seeed Studio Muse Gadget Challenge |
 
 ## Repository map
 
@@ -133,6 +134,15 @@ python3 tools/muse/chat.py "What can you do with this gadget?"
 `chat.py` sends a typed turn to the user's Muse through the board, which is
 the quickest way to see whether Muse finds and uses a new command. On a UI
 board, `MUSE_BENCH=1` builds take screenshots with `tools/muse/snap.py`.
+
+## Upload to CodeCraft Hub
+
+[CodeCraft Hub](https://sensecraft.seeed.cc/ai/application/) is the community platform where people can discover your project, and easily deploy your Muse Gadget application with one-click.
+
+Uploading is **optional** for general development and use, but **required if
+you want to participate in the [Seeed Studio Muse Gadget Challenge](https://test-codecraft.seeed.cc/hub/contest/muse-gadget-challenge).**
+
+Use [`sensecraft-cli`](https://github.com/Seeed-Solution/sensecraft-cli) to upload projects to CodeCraft Hub. Follow the [set up guide](https://test-sensecraft.seeed.cc/wiki/en/sensecraft-cli/guides/getting-started/setting-up/) to install, complete authorization, and load the skills. Then use the /create-app skill to turn this project into a deployable application on CodeCraft Hub.
 
 ## Credentials and backups
 

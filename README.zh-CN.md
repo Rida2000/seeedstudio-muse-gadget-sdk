@@ -42,6 +42,7 @@ limitations under the License.
 - [常见问题](#常见问题)
 - [恢复出厂固件](#恢复出厂固件)
 - [给开发者](#给开发者)
+- [把项目上传到 CodeCraft Hub](#把项目上传到-codecraft-hub)
 
 ## 支持的设备
 
@@ -336,6 +337,12 @@ XIAO 1.47 英寸触摸屏也已获得上游支持。Sticky 使用 Muse 的 FreeI
 | [**Muse Gadgets Test**](android/musegadgetstest)（[iPhone](ios/musegadgetstest)） | 通过 Wi-Fi 把手机摄像头或视频片段传到支持的 ESP32 屏幕，由板子解码 H.264 或 VP8；466 像素圆屏可达 30 fps。使用方式见 [`protocols/VIDEO.md`](protocols/VIDEO.md)。 |
 
 AI 编程助手从 [`AGENTS.md`](AGENTS.md) 读起（Claude Code 通过 [`CLAUDE.md`](CLAUDE.md) 读取它）：里面有 Seeed 设备总表、怎么在这些设备上做应用和 Demo，以及怎么贡献代码。每个目录都有一个入门用的 `README.md`，以及给 [Muse Code](https://developer.meta.com/ai/lp/muse-code/) 这类编程助手看的 `AGENTS.md`。电池功耗测量见 [`esp32/docs/power/`](esp32/docs/power/README.md)。
+
+## 把项目上传到 CodeCraft Hub
+
+[CodeCraft Hub](https://sensecraft.seeed.cc/ai/application/) 是一个社区平台，让更多人发现你的项目，并一键部署你的 Muse Gadget 应用。借助 AI 编程助手，上传也很方便：[上传你的项目](AGENTS.md#upload-to-codecraft-hub)。
+
+对于日常开发和使用，上传项目是**可选步骤**；如果你想参加 **[Seeed Studio Muse Gadget Challenge](https://test-codecraft.seeed.cc/hub/contest/muse-gadget-challenge)，则必须上传项目**。
 
 ## 社区
 

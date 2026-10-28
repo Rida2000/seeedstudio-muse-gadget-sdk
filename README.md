@@ -53,6 +53,7 @@ beginning, with no programming experience needed.
 - [Troubleshooting](#troubleshooting)
 - [Going back to the factory firmware](#going-back-to-the-factory-firmware)
 - [For developers](#for-developers)
+- [Share your project on CodeCraft Hub](#share-your-project-on-codecraft-hub)
 
 ## Supported devices
 
@@ -445,6 +446,14 @@ demos on them, and how to contribute. Each directory also has a `README.md` to
 start with and an `AGENTS.md` for coding agents like
 [Muse Code](https://developer.meta.com/ai/lp/muse-code/). For battery power
 profiling, see [`esp32/docs/power/`](esp32/docs/power/README.md).
+
+## Share your project on CodeCraft Hub
+
+[CodeCraft Hub](https://sensecraft.seeed.cc/ai/application/) is the community platform where people can discover your project, and easily deploy your Muse Gadget application with one-click. Upload is easy with the help of your AI agent: [upload your project](AGENTS.md#upload-to-codecraft-hub).
+
+Uploading is **optional** for general development and use, but **required if
+you want to participate in the [Seeed Studio Muse Gadget Challenge](https://test-codecraft.seeed.cc/hub/contest/muse-gadget-challenge).**
+
 
 ## Community
 
