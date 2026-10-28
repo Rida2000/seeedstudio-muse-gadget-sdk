@@ -137,12 +137,12 @@ board, `MUSE_BENCH=1` builds take screenshots with `tools/muse/snap.py`.
 
 ## Upload to CodeCraft Hub
 
-[CodeCraft Hub](https://sensecraft.seeed.cc/ai/application/) is the community platform where people can discover your project, and easily deploy your Muse Gadget application with one-click.
+[CodeCraft Hub](https://codecraft.seeed.cc/hub/) is the community platform where people can discover your project, and easily deploy your Muse Gadget application with one-click.
 
 Uploading is **optional** for general development and use, but **required if
-you want to participate in the [Seeed Studio Muse Gadget Challenge](https://test-codecraft.seeed.cc/hub/contest/muse-gadget-challenge).**
+you want to participate in the [Seeed Studio Muse Gadget Challenge](https://codecraft.seeed.cc/hub/contest/muse-gadget-challenge).**
 
-Use [`sensecraft-cli`](https://github.com/Seeed-Solution/sensecraft-cli) to upload projects to CodeCraft Hub. Follow the [set up guide](https://test-sensecraft.seeed.cc/wiki/en/sensecraft-cli/guides/getting-started/setting-up/) to install, complete authorization, and load the skills. Then use the /create-app skill to turn this project into a deployable application on CodeCraft Hub.
+Use [`sensecraft-cli`](https://github.com/Seeed-Solution/sensecraft-cli) to upload projects to CodeCraft Hub. Follow the [set up guide](https://sensecraft.seeed.cc/wiki/en/sensecraft-cli/guides/getting-started/setting-up/) to install, complete authorization, and load the skills. Then use the /create-app skill to turn this project into a deployable application on CodeCraft Hub.
 
 ## Credentials and backups
 

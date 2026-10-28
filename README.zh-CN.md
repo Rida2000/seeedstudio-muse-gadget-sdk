@@ -340,9 +340,9 @@ AI 编程助手从 [`AGENTS.md`](AGENTS.md) 读起（Claude Code 通过 [`CLAUDE
 
 ## 把项目上传到 CodeCraft Hub
 
-[CodeCraft Hub](https://sensecraft.seeed.cc/ai/application/) 是一个社区平台，让更多人发现你的项目，并一键部署你的 Muse Gadget 应用。借助 AI 编程助手，上传也很方便：[上传你的项目](AGENTS.md#upload-to-codecraft-hub)。
+[CodeCraft Hub](https://codecraft.seeed.cc/hub/) 是一个社区平台，让更多人发现你的项目，并一键部署你的 Muse Gadget 应用。借助 AI 编程助手，上传也很方便：[上传你的项目](AGENTS.md#upload-to-codecraft-hub)。
 
-对于日常开发和使用，上传项目是**可选步骤**；如果你想参加 **[Seeed Studio Muse Gadget Challenge](https://test-codecraft.seeed.cc/hub/contest/muse-gadget-challenge)，则必须上传项目**。
+对于日常开发和使用，上传项目是**可选步骤**；如果你想参加 **[Seeed Studio Muse Gadget Challenge](https://codecraft.seeed.cc/hub/contest/muse-gadget-challenge)，则必须上传项目**。
 
 ## 社区
 
