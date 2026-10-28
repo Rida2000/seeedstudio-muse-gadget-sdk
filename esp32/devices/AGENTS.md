@@ -81,11 +81,13 @@ from that vendor's code.
 |---|---|---|---|
 | Light | status LED, or nothing | an overlay | `sdkconfig.defaults` (the C5 DevKitC-1) |
 | Status screen | edge bars and an animation | an overlay and a display backend in `main/` | `sdkconfig.ideaspark`, `sdkconfig.sensecap-indicator` |
-| E-paper | a status screen with text | an overlay and its own `led_status.h` implementation | `sdkconfig.reterminal-e1001`, `sdkconfig.reterminal-e1002`, `main/epaper_status.c` |
-| UI | LVGL avatar, voice and settings | an overlay on top of `sdkconfig.muse` and a `muse_board_t` | `sdkconfig.muse-*` |
+| E-paper status | a status screen with text | an overlay and its own `led_status.h` implementation | `sdkconfig.reterminal-e1001`, `sdkconfig.reterminal-e1002`, `main/epaper_status.c` |
+| LCD / AMOLED UI | LVGL avatar, voice and settings | an overlay on top of `sdkconfig.muse` and a `muse_board_t` | `sdkconfig.muse-*` |
+| E-paper UI | FreeInk avatar, voice and settings | a FreeInk device profile, an overlay on top of `sdkconfig.muse` and a `muse_board_t` | `devices/sdkconfig.reterminal-sticky`, `components/muse/boards/board_reterminal_sticky.c`, `components/muse/eink/` |
 
-A board with a screen, mic and speaker should run the full UI. The UI needs 8 MB
-of flash or more: 16 MB boards use `partitions_muse.csv`, and 8 MB boards
+A board with a screen and microphone can run the full UI, with speaker replies
+when a speaker is present and text replies on a microphone-only board. The UI
+needs 8 MB of flash or more: 16 MB boards use `partitions_muse.csv`, and 8 MB boards
 `partitions_muse_8mb.csv`. Without PSRAM it loses the tunnel and images, and voice
 notes go over Link's session with text-only replies. Link builds need 8 MB or
 more, since `partitions.csv` ends past 4 MB and its offsets must not move.
@@ -196,7 +198,15 @@ follows the same two steps. Copy `DEVKIT_GPIO27` (addressable) or `PWM_RGB`.
    `muse_board_get()`. Start from `board_waveshare_c6_18.c` or
    `board_waveshare_s3_175c.c` when a vendor BSP does the display, touch,
    codec and PMU. Start from `board_aipi.c` when you drive `esp_lcd`, the codec
-   and GPIOs yourself.
+   and GPIOs yourself. For a microphone-only board, use
+   `board_seeed_xiao_s3_147.c`'s `mic_init`, `mic_power` and `mic_read` hooks.
+   For an e-paper UI, follow `board_reterminal_sticky.c`. Extend the per-board
+   defaults in `components/muse/Kconfig` for the hidden `MUSE_UI_FREEINK` and
+   `MUSE_FREEINK_DEVICE` options to enable FreeInk and name its supported
+   device profile. Supply `touch_read` for touch input, and use
+   `muse_eink_display_pause` for `display_pause`. FreeInk owns the panel and
+   refreshes; the LVGL display hooks stay NULL. Its source is pinned in
+   `components/muse/idf_component.yml`.
 5. **Overlay.** Write `devices/sdkconfig.muse-<name>`, loaded after
    `sdkconfig.muse`. It holds the target, `CONFIG_MUSE_BOARD_<NAME>=y`, PSRAM,
    the flash size if it isn't 16 MB (with 8 MB, also
@@ -216,26 +226,29 @@ The fields of `muse_board_t`:
 | Field | Contract |
 |---|---|
 | `name`, `width`, `height` | The panel as the UI draws it |
-| `round`, `touch` | Round panel; `touch` only if `display_start` returns an input device |
-| `touch_talk` | Optional touch-only push-to-talk: the LVGL microphone sends press/release edges through the existing input handler, and an explicit screen press confirms pending pairing. Defaults to false; requires `touch`. |
+| `round`, `touch` | Round panel; `touch` means an input device from `display_start` on LVGL, or a `touch_read` implementation on FreeInk |
+| `epaper` | Slow-refresh panel; the shared settings and audio paths use the e-paper behaviour |
+| `touch_talk` | On-screen microphone supplies talk press/release edges and a screen press confirms pending pairing. Requires `touch`; the board may also have a physical talk button |
 | `keyboard` | Dedicated navigation keys: `poll_buttons` emits `MUSE_BTN_UP/DOWN/LEFT/RIGHT/ENTER/ESCAPE` presses. Enter selects and confirms pairing; Talk is not repurposed as Select while the menu is open. Defaults to false for two-button boards. |
 | `talk_button`, `aux_button` | On-screen captions ("boot", "pwr"). `talk_hint` and `aux_hint` place them next to the physical button |
 | `flat_menu_hints` | With `aux_hint` on `LV_ALIGN_RIGHT_MID` the menu turns that button's hint on end, drawn through a ~14 KB layer. Set it on a board that can't spare the RAM (the ESP32-C3): the hint lies flat on the menu's bar instead |
-| `frame_ms` | Avatar frame period: 40 on the S3 boards, 50 on the C6 |
+| `frame_ms` | Avatar frame period in milliseconds, chosen for the panel's refresh rate; the Sticky uses 700 |
 | `avatar_px` | Optional avatar canvas size in pixels; 0 uses the layout default |
 | `init` | Runs first: power latches, I2C bus, PMU |
-| `display_start` | Panel, LVGL and its task. Returns the display; leaves `*touch` NULL without touch |
+| `display_start` | LVGL boards: panel, LVGL and its task. Returns the display; leaves `*touch` NULL without touch. FreeInk boards leave this hook NULL |
 | `display_lock`, `display_unlock` | LVGL's lock |
+| `touch_read` | FreeInk boards: returns true while a finger is down and writes its coordinates in the board's `width` × `height` space |
 | `set_brightness` | 0 to 100 |
 | `panel_sleep` | Puts the panel to sleep when the screen goes off. May be NULL: then only the backlight turns off |
-| `display_pause` | Once the screen is dark on battery: stops LVGL (`esp_lv_adapter_pause`), sleeps the touch controller and stops anything else holding a PM lock, so the chip can light-sleep. Only buttons wake it. With a USB host attached the CPU stays at full speed anyway. May be NULL: LVGL keeps running and the CPU stays at full speed. Needs the PM block in the overlay (see `sdkconfig.muse-aipi`), and with PSRAM its static-buffers block too: light sleep's code takes internal RAM Link needs. CPU power-down in light sleep (`CONFIG_PM_POWER_DOWN_CPU_IN_LIGHT_SLEEP`) saves more but takes about 15 KB of internal RAM for good on an S3 with PSRAM (`muse_input_power_init()` takes it at boot, before the radios fragment the heap): the Watcher pays for it with `CONFIG_MUSE_STATIC_BUFFERS_IN_PSRAM` |
-| `audio_init` | `esp_codec_dev` speaker and mic. `mic_slot` is 0 or 1, or -1 to mix. `set_mic_gain` may be NULL |
+| `display_pause` | Once the screen is dark on battery: LVGL boards stop its task (`esp_lv_adapter_pause`), sleep touch and release PM locks; FreeInk boards use `muse_eink_display_pause`. Buttons can still wake the board. With a USB host attached the CPU stays at full speed. May be NULL on LVGL: its task keeps running. Needs the PM block in the overlay (see `sdkconfig.muse-aipi`), and with PSRAM its static-buffers block too: light sleep's code takes internal RAM Link needs. CPU power-down in light sleep (`CONFIG_PM_POWER_DOWN_CPU_IN_LIGHT_SLEEP`) saves more but takes about 15 KB of internal RAM for good on an S3 with PSRAM (`muse_input_power_init()` takes it at boot, before the radios fragment the heap): the Watcher pays for it with `CONFIG_MUSE_STATIC_BUFFERS_IN_PSRAM` |
+| `audio_init` | `esp_codec_dev` speaker and mic. `mic_slot` is 0 or 1, or -1 to mix. `set_mic_gain` may be NULL. Microphone-only boards use the three `mic_*` hooks instead |
+| `mic_init`, `mic_power`, `mic_read` | Microphone-only path: initialize once, follow `muse_audio_power` on/off, and read mono `int16_t` samples at `MUSE_AUDIO_RATE`. Replies are text; `audio_init` stays NULL |
 | `audio_power` | Audio power such as an amp's enable: on once the codecs are open, off before they close to rest. May be NULL |
 | `codec_power` | The codecs' own supply, where the board switches it: on before they open (the first time too, before `audio_init`), off once both have closed to rest. While it's off, `muse_audio` sends them nothing and reapplies volume and gain on the next open. Park the I2S lines so they don't feed the unpowered codec, and redo any codec setup a power-on reset loses (see `board_m5stack_stopwatch.c`). May be NULL: always powered |
 | `poll_buttons` | Called every 10 ms, or 50 ms while the display is paused and `wait_buttons` is NULL. Returns `MUSE_BTN_*` edges. Use `muse_gpio_button_*` for GPIO buttons, or `muse_pmu_poll_key()` for an AXP2101 PWR key |
 | `wait_buttons` | While the display is paused: blocks until a button changes, so the chip light-sleeps instead of waking to poll. `muse_gpio_buttons_wait()` for GPIO buttons; a key only the PMU sees has to be polled, unless the PMU can interrupt (the StopWatch's M5PM1 pulls GPIO12 low on a click). May be NULL: polled every 50 ms |
 | `read_power` | May be NULL (no battery). `muse_pmu_read_power` on an AXP2101. Leave `battery_mv` 0 if the board can't measure the voltage in millivolts. The battery meter (`muse_battery.h`: Settings → Battery, `tools/muse/power.py`) reads it |
-| `power_off` | Required. Returns only if it fails; return `ESP_ERR_NOT_SUPPORTED` when no software power mechanism is verified (EchoEar-2ST). Do not guess a latch GPIO. |
+| `power_off` | Implement a verified software power-off path; successful power-off does not return. NULL means a physical switch controls power and Settings omits Power off |
 
 On a classic ESP32 (see `board_m5stack_stickc_plus2.c`):
 
@@ -288,15 +301,32 @@ On a classic ESP32 (see `board_m5stack_stickc_plus2.c`):
    Indicator if you changed `led_status.c`, or another board with the full UI if you changed
    `components/muse`. UI and other builds share `managed_components/`, so
    delete it and `dependencies.lock` between them.
-5. Run the host tests: `python3 -m unittest discover -s tests -p 'test_*.py'`.
+5. Run the host tests as described in [`../AGENTS.md`](../AGENTS.md#tests),
+   including the pinned FreeInk source for e-ink navigation. Test optional
+   peripheral features with their option both off and on, and report skips.
+   Shared LVGL layout or input changes also run the
+   [simulator tests](../simulator/README.md#automated-tests), with the new
+   geometry and representative existing layouts affected by the change
+   (narrow, wide or round). Exercise changed flows such as text entry, save,
+   cancel and return; CI runs the simulator tests on Linux and macOS.
 6. On hardware, flash and capture the boot with `tools/muse/monitor.py PORT 30`
    (for a board with the full UI, `$(tools/muse/ports.py <alias>)` gives the port).
    You should see `link.main: Muse Gadget starting` and the `link.led: LED
    status ready: ...` line for your backend, PSRAM found if the board has it,
    and no panic or reboot loop. The status should breathe orange, and a BLE
    scan should show `<prefix>-XXXXXX`.
+7. Exercise the flows the board supports and the change affects: pair and
+   reconnect; enter a Wi-Fi name and password; record from each supported
+   talk control; read or hear the reply; display an image with the advertised
+   grayscale or colour depth; sleep and wake; receive logs and send commands
+   through the console USB
+   port. On e-paper, check that text entry appears while input continues and
+   the display task can wait when idle.
 
-If you don't have the board, say that the port was only built, not run.
+Record the tested commit, board revision, unit count and results. Record
+build-only results separately. Repeat affected checks on the final reviewed
+implementation when review changes its behaviour, and update the PR's
+hardware results for that revision.
 
 ## 9. Power measurement
 

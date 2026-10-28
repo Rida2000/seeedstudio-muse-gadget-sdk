@@ -168,6 +168,13 @@ A board without a speaker runs as a microphone-only board through the
 Support for hardware the user adds is a separate feature, behind its own
 Kconfig option and in its own PR.
 
+Enable an optional peripheral service by default when a shipped feature uses
+it. Otherwise expose it through an opt-in Kconfig option, as the Sticky's
+microSD mount is, and verify both settings. Use event waits for idle tasks
+where the hardware supports them, and justify any periodic polling the port
+adds. Slow screens still present changes within a bounded time while the
+user keeps typing or touching the screen.
+
 This repository takes device support, Muse features and fixes. Integrations
 with third-party cloud services, and helpers for one person's machine or
 network, belong in the user's own fork.
@@ -202,12 +209,23 @@ Before you hand work back:
    the app-size line, as [Verify](esp32/devices/AGENTS.md#8-verify) describes.
 2. Run the host tests from `esp32/`. `tools/muse/board.sh` clears
    `managed_components/`, so run one `idf.py build` first (the default C5
-   build is enough), then `python3 -m unittest discover -s tests -p 'test_*.py'`. E-ink navigation
-   tests use the pinned FreeInk checkout through `FREEINK_SOURCE_DIR` or
-   `managed_components/freeink-sdk` from a Sticky configure.
-3. On hardware, capture the boot log and try what you changed. Without the
-   board, say the change was built but not run.
-4. Report what you checked, on which board, and what's left unchecked.
+   build is enough), then `python3 -m unittest discover -s tests -p 'test_*.py'`.
+   E-ink navigation tests use the pinned FreeInk checkout through
+   `FREEINK_SOURCE_DIR` or `managed_components/freeink-sdk` from a Sticky
+   configure. Report skipped tests and their missing inputs.
+3. For shared LVGL layout or input changes, run the
+   [UI simulator tests](esp32/simulator/README.md#automated-tests). Cover the
+   new screen and representative existing geometries affected by the change
+   (narrow, wide or round), with interaction checks such as text entry, save,
+   cancel and return where those flows change. Keep the simulator's Linux
+   and macOS CI jobs passing. FreeInk interactions use the e-ink host tests
+   and the board.
+4. On hardware, exercise the complete path the feature exposes: setup and
+   reconnect, Wi-Fi text entry, talk controls and reply display, image format
+   and grayscale or colour, sleep/wake, and both logs and commands through
+   the console USB port, as applicable. Record build-only results separately.
+5. Report the tested commit, board revision and unit count, toolchain,
+   commands, build sizes and results, and the checks still awaiting hardware.
 
 ## Contributing
 
@@ -234,18 +252,20 @@ beginner's guide, no Chinese docs.
 
 - One change per PR: a board port, a feature, or a fix. A port with an extra
   feature becomes two PRs.
-- Branch from an up-to-date `main` with a `feat/`, `fix/`, `docs/` or
-  `refactor/` prefix.
+- Branch from the destination repository's current `main` with a `feat/`,
+  `fix/`, `docs/` or `refactor/` prefix. For upstream, start from
+  `upstream/main` and apply the feature's changes to its current shared files.
 - Commit messages: a short summary line, then what changed and why it works.
   A contributor commits and opens the PR under their own name.
 - Leave out credentials, firmware images, flash backups, logs with tokens in
   them, and personal network or provisioning files.
 - The description has a **Summary** (what changes, file by file for a port),
   **Testing** (each thing checked on hardware, on how many units, then builds
-  and host tests) and the limits that remain. A board PR names the vendor
-  sources its pins come from.
+  and host or simulator tests, with the tested commit) and the limits that
+  remain. A board PR names the vendor sources its pins come from.
 - CI builds the boards listed in `.github/workflows/esp32.yml`; a new board
-  adds its entry there.
+  adds one entry per profile there. Each web-flasher board id matches one
+  build entry; keep existing board ids and feature-table columns intact.
 
 ### Reviewing a pull request
 
@@ -253,12 +273,27 @@ Check, in order: the scope (one change, the board as shipped); no credentials;
 shared-code changes are gated or provably limited to the new board; the docs
 tables still have the same number of columns in every row and the other boards'
 cells unchanged; the PR is based on the current `main` (rebase or merge it, and
-apply only its diff to shared files); then build the board and one other, and
-run the host tests. When only part of a PR fits, ask its author to split it.
+apply only its diff to shared files); then follow
+[Verifying a change](#verifying-a-change), including the shared UI tests and
+the complete device interactions affected by the patch. Review default
+peripheral activity, idle behaviour and the advertised device capabilities
+alongside the driver itself. When only part of a PR fits, ask its author to
+split it.
 If you take the part that fits yourself, commit it under your own name with
 the PR's number in the summary line (`(#12)`), comment on the PR with what
 went in and what didn't, and close it; the author can send the rest as their
 own PRs.
+
+### After review and merge
+
+Reviewers may adjust the implementation or add regression coverage. Verify
+the final reviewed revision: rerun the affected automated checks, and repeat
+affected hardware flows when behaviour changed since the last device test.
+The contributor with the device supplies those results, or records which
+checks await hardware. Record that revision and its results in the PR;
+maintainers' build and host test results complement the contributor's
+hardware results. After merge, check the landed commit and refresh device
+status and validation notes from that implementation.
 
 ## Keeping up with upstream
 
@@ -268,8 +303,10 @@ git fetch upstream
 git merge --no-ff upstream/main
 ```
 
-When both sides changed a file, keep upstream's version of what upstream owns
-(its boards, and Seeed boards it has taken in, such as the Sticky) and keep
-this repository's additions beside it: board lists, component rules and docs
-tables gain both entries. Then build the Seeed boards, run the host tests, and
-bring the Chinese docs up to date with any English changes upstream made.
+For a device accepted upstream, compare the submitted patch with the landed
+commit and retain the reviewed implementation. Keep this repository's
+remaining additions beside it, such as the AMOLED profiles and Chinese docs.
+Reconcile board lists, component rules, CI and web-flasher entries by board id
+so each profile occurs once, and preserve the existing feature-table cells.
+Then build the Seeed boards, run the affected host and simulator tests, and
+bring the Chinese docs up to date with the English changes upstream made.
